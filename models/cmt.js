@@ -1,5 +1,6 @@
 class Comment {
-    constructor(id,content, date, username) {
+    constructor(props) {
+            const {id,content, date, username} = props;
             this.id = id;
             this.content = content;
             this.date = date;
