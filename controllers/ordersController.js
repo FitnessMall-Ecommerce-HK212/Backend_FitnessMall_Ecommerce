@@ -2,7 +2,6 @@
 
 const firestore = require('../configure/firestore');
 
-const Order = require('../models/orders');
 const addOrder = async (req, res, next) => {
     try {
         const data = req.body;

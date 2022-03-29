@@ -10,8 +10,8 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use('/api/blogs', require('./routes/blogs-routes'));
-// app.use('/api', studentRoutes.routes);
+app.use('/api/order', require('./routes/orders-routes'));
+// app.use('/api/blogs', require('./routes/blogs-routes'));
 
 
 

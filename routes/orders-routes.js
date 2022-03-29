@@ -5,16 +5,16 @@ const {addOrder,
        updateOrder,
        deleteOrder
       } = require('../controllers/ordersController');
+const momoPayment = require('../controllers/paymentController');
 
 const router = express.Router();
 
-router.post('/order', addOrder);
-router.get('/orders', getAllOrders);
-router.get('/order/:id', getOrder);
-router.put('/order/:id', updateOrder);
-router.delete('/order/:id', deleteOrder);
+router.post('/payment', momoPayment);
+// router.post('/order', addOrder);
+// router.get('/orders', getAllOrders);
+// router.get('/order/:id', getOrder);
+// router.put('/order/:id', updateOrder);
+// router.delete('/order/:id', deleteOrder);
 
 
-module.exports = {
-    routes: router
-}
+module.exports = router;
