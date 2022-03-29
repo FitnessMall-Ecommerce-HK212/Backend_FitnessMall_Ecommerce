@@ -3,11 +3,71 @@
 const firestore = require('../configure/firestore');
 
 const User = require('../models/users');
-const addUser = async (req, res, next) => {
+
+const signIn = async (req, res, next) => {
     try {
-        const data = req.body;
-        await firestore.collection('users').doc().set(data); 
-        res.send('Record saved successfuly');
+        if (req.query.username === undefined) res.send('Missing username value');
+        else if (req.query.password === undefined) res.send('Missing password value');
+        else {
+            const user = await firestore.collection('users')
+                .where('username', '==', req.query.username)
+                .get();
+
+            if (user.empty) res.send('Wrong information');
+            else {
+                var password, role;
+                user.forEach(doc => {
+                    password = doc.data().password;
+                    role = doc.data().role;
+                });
+
+                if (password !== req.query.password) res.send('Wrong information');
+                else {
+                    req.session.username = req.query.username;
+                    req.session.role = role;
+                    res.send('Sign in successfully');
+                }
+            }
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const getSession = async (req, res, next) => {
+    res.send(req.session);
+}
+
+const author = async (req, res, next) => {
+   if (req.session.username === undefined) res.redirect('/');
+   else res.send('OK');
+}
+
+const signOut = async (req, res, next) => {
+    req.session.destroy();
+    res.redirect('/');
+}
+
+const signUp = async (req, res, next) => {
+    try {
+        if (req.body.username === undefined) res.send('Missing username value');
+        else if (req.body.password === undefined) res.send('Missing password value');
+        else if (req.body.name === undefined) res.send('Missing name value');
+        else if (req.body.email === undefined) res.send('Missing email value');
+        else {
+            const user = await firestore.collection('users')
+                .where("username", "==", req.body.username)
+                .get();
+            const gmail = await firestore.collection('users')
+                .where("email", "==", req.body.email)
+                .get();
+            if (user.empty && gmail.empty) {
+                await firestore.collection('users').add({ ...req.body, role: 'member' });
+                res.send('Sign up successfully');
+            } else if (!user.empty) {
+                res.send('Sign up failed ! Account has existed already');
+            } else res.send('Sign up failed ! Email has existed already');
+        }
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -15,25 +75,24 @@ const addUser = async (req, res, next) => {
 
 const getAllUsers = async (req, res, next) => {
     try {
-        const Users = await firestore.collection('Users');
+        const Users = await firestore.collection('users');
         const data = await Users.get();
         const UsersArray = [];
-        if(data.empty) {
+        if (data.empty) {
             res.status(404).send('No User record found');
-        }else {
-            data.forEach(doc => {
-                const User = new User(
+        } else {
+            data.forEach(async doc => {
+                const user = new User(
                     doc.id,
                     doc.data().username,
-                    doc.data().pwd,
+                    doc.data().password,
                     doc.data().name,
                     doc.data().avatar,
                     doc.data().role,
                     doc.data().height,
-                    doc.data().weight,
-                    getAllInformations(doc.collection(information))//TODO: sai nè
+                    doc.data().weight
                 );
-                UsersArray.push(User);
+                UsersArray.push(user);
             });
             res.send(UsersArray);
         }
@@ -44,14 +103,30 @@ const getAllUsers = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
     try {
-        const id = req.params.id;
-        const User = await firestore.collection('Users').doc(id);
-        const data = await User.get();
-        if(!data.exists) {
-            res.status(404).send('User with the given ID not found');
-        }else {
-            res.send(data.data());
+        const username = req.params.username;
+        const Users = await firestore.collection('users').where('username', "==", username).get();
+
+        if (Users.empty) {
+            res.status(404).send('User with the given username not found');
+        } else {
+            const user = []
+            Users.forEach(doc => {
+                const data = doc.data();
+                user.push(new User(
+                    doc.id,
+                    data.username,
+                    data.password,
+                    data.name,
+                    data.avatar,
+                    data.role,
+                    data.height,
+                    data.weight,
+                    data.email
+                ))
+            })
+            res.send(user[0]);
         }
+
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -59,30 +134,59 @@ const getUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
-        const id = req.params.id;
-        const data = req.body;
-        const User =  await firestore.collection('Users').doc(id);
-        await User.update(data);
-        res.send('User record updated successfuly');        
+        if (req.body.username === undefined) res.send('Missing username value');
+        else if (req.body.password === undefined) res.send('Missing password value');
+        else if (req.body.name === undefined) res.send('Missing name value');
+        else if (req.body.email === undefined) res.send('Missing email value');
+        else if (req.body.avatar === undefined) res.send('Missing avatar value');
+        else if (req.body.height === undefined) res.send('Missing height value');
+        else if (req.body.weight === undefined) res.send('Missing weight value');
+        else {
+            const user = await firestore.collection('users')
+                .where("username", "==", req.body.username)
+                .get();
+
+            var email, id;
+
+            user.forEach((doc) => {
+                id = doc.id;
+                email = doc.data().email;
+            });
+
+            // console.log(email, " ", id);
+
+            const gmail = await firestore.collection('users')
+                .where("email", "==", req.body.email)
+                .get();
+
+            if (email === req.body.email || gmail.empty) {
+                await firestore.collection('users').doc(id).update(req.body);
+                res.send('Update information successfully');
+            } else res.send('Update failed! Email has existed already');
+        }
     } catch (error) {
         res.status(400).send(error.message);
     }
 }
 
-const deleteUser = async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        await firestore.collection('Users').doc(id).delete();
-        res.send('Record deleted successfuly');
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-}
+// const deleteUser = async (req, res, next) => {
+//     try {
+//         const id = req.params.id;
+//         await firestore.collection('Users').doc(id).delete();
+//         res.send('Record deleted successfuly');
+//     } catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// }
 
 module.exports = {
-    addUser,
+    signUp,
+    getSession,
+    signIn,
+    signOut,
     getAllUsers,
     getUser,
     updateUser,
-    deleteUser
+    author
+    // deleteUser
 }

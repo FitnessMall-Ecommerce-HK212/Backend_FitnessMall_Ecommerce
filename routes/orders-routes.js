@@ -9,7 +9,7 @@ const {addOrder,
 const router = express.Router();
 
 router.post('/order', addOrder);
-router.get('/orders', getAllOrders);
+router.get('/orders/:username', getAllOrders);
 router.get('/order/:id', getOrder);
 router.put('/order/:id', updateOrder);
 router.delete('/order/:id', deleteOrder);
