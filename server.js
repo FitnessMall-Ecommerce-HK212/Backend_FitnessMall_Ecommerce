@@ -8,8 +8,32 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const config = require('./configure/config');
-const studentRoutes = require('./routes/users-routes');
+
+// const blogsRoutes = require('./routes/blogs-routes');
+// const cmtsRoutes = require('./routes/cmt-routes');
+// const feedbacksRoutes = require('./routes/feedback-routes');
+// const foodsRoutes = require('./routes/food-routes');
+const informationsRoutes = require('./routes/informations-routes');
+// const itemsRoutes = require('./routes/items-routes');
+// const itemTypeRoutes = require('./routes/itemtype-routes copy');
 const ordersRoutes = require('./routes/orders-routes');
+// const productsRoutes = require('./routes/product-routes');
+// const receiptsRoutes = require('./routes/receipts-routes');
+const usersRoutes = require('./routes/users-routes');
+
+const routes = [
+    // blogsRoutes,
+    // cmtsRoutes,
+    // feedbacksRoutes,
+    // foodsRoutes,
+    informationsRoutes,
+    // itemsRoutes,
+    // itemTypeRoutes,
+    ordersRoutes,
+    // productsRoutes,
+    // receiptsRoutes,
+    usersRoutes
+];
 
 const app = express();
 
@@ -30,8 +54,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 app.use(cookieParser());
 
-app.use('/api', studentRoutes.routes);
-app.use('/api', ordersRoutes.routes);
+routes.forEach(route => { app.use('/api', route.routes) });
+// app.use('/api', studentRoutes.routes);
+// app.use('/api', ordersRoutes.routes);
 
 
 app.listen(config.port, () => console.log('App is listening on url http://localhost:' + config.port));

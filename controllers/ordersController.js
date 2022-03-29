@@ -7,55 +7,10 @@ const md5 = require('md5');
 
 const addOrder = async (req, res, next) => {
     try {
-        const logistics_interface = `{
-            "eccompanyid": "CUSMODEL",
-            "customerid": "084LC012345",
-            "txlogisticid": "293442970",
-            "ordertype": 1,
-            "servicetype": 1,
-            "selfAddress": 1,
-            "partsign": "0",
-            "sender": {
-                "name": "WangLei",
-                "phone": "0965823123",
-                "mobile": "0965823123",
-                "prov": "Hồ Chí Minh",
-                "city": "Quận 1",
-                "area": "Phường Bến Nghé-028QQ101",
-                "address": "Phường Bến Nghé, Quận 1,Tp. Hồ Chí Minh"
-            },
-            "receiver": {
-                "name": "Yuliyanti",
-                "phone": "0974732123",
-                "mobile": "0965823123",
-                "prov": "Hà Nội",
-                "city": "Huyện Ba Vì",
-                "area": "Thị trấn Tây Đằng-024HBV01",
-                "address": "4001. Thị trấn Tây Đằng"
-            },
-            "createordertime": "2018-06-19 18:16:20",
-            "sendstarttime": "2018-06-19 18:16:20",
-            "sendendtime": "2018-06-19 18:16:20",
-            "paytype": "PP_PM",
-            "itemsvalue": "20000",
-            "goodsvalue": "20000",
-            "isInsured": "1",
-            "items": [
-                {
-                    "itemname": "Tên hàng hóa",
-                    "englishName": "Tapestry",
-                    "number": "1",
-                    "itemvalue": "5000",
-                    "desc": "Tapestry"
-                }
-            ],
-            "weight": "5.8",
-            "volume": "6",
-            "remark": "Không cho xem hàng"
-        }`;
+        const logistics_interface = `{"eccompanyid":"CUSMODEL","customerid":"084LC012345","logisticprviderid":"JNT","txlogisticid":"322SA1112A11","fieldlist":[{"txlogisticid":"322SA1112A11","fieldname": "status","fieldvalue": "WITHDRAW","remark": "test"}]}`;
         const key = '04fc653c0f661e1204bd804774e01824';
 
-        const data_digest = md5(Buffer.from(logistics_interface + key).toString('base64'));
+        const data_digest = Buffer.from(md5(logistics_interface + key)).toString('base64');
         res.send(data_digest);
 
         // const data = req.body;
