@@ -20,6 +20,7 @@ const ordersRoutes = require('./routes/orders-routes');
 // const productsRoutes = require('./routes/product-routes');
 // const receiptsRoutes = require('./routes/receipts-routes');
 const usersRoutes = require('./routes/users-routes');
+const verifiedRoutes = require('./routes/verified-routes');
 
 const routes = [
     // blogsRoutes,
@@ -32,7 +33,8 @@ const routes = [
     ordersRoutes,
     // productsRoutes,
     // receiptsRoutes,
-    usersRoutes
+    usersRoutes,
+    verifiedRoutes
 ];
 
 const app = express();
