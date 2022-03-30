@@ -10,7 +10,9 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use('/api/payment', require('./routes/payment-routes'));
 app.use('/api/order', require('./routes/orders-routes'));
+app.use('/api/item', require('./routes/items-routes'));
 // app.use('/api/blogs', require('./routes/blogs-routes'));
 
 
