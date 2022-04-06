@@ -33,18 +33,18 @@ const getHotItems = async (req, res, next) => {
                     image: value.data().image,
                     name: value.data().name
                 }));
-            if (itemList.length == 10){
+            if (itemList.length == 10) {
                 res.status(200).send({
                     hotItems: itemList
                 });
             }
         })
-        
+
     } catch (e) {
         res.status(500).send(e);
         console.log(e);
     }
-    
+
 }
 
 const addItem = async (req, res, next) => {
@@ -61,25 +61,43 @@ const addItem = async (req, res, next) => {
 
 const getAllItems = async (req, res, next) => {
     try {
-        const Items = await firestore.collection('items');
-        const data = await Items.get();
-        const ItemsArray = [];
-        if (data.empty) {
-            res.status(404).send('No Item record found');
-        } else {
-            data.forEach(doc => {
-                const Item = new Item(
-                    doc.id,
-                    doc.data().code,
-                    doc.data().description,
-                    getAllItemType(doc.collection('itemtype')),
-                    getAllFeedBack(doc.collection('feedback')),
-                    doc.data().image,
-                    doc.data().name
-                );
-                ItemsArray.push(Item);
+        const items = await firestore.collection("items").get();
+        if (items.empty) res.send("No record found");
+        else {
+            var itemsArray = [];
+            items.forEach(item => {
+                const data = item.data();
+                itemsArray.push(new Item(
+                    item.id,
+                    data.code,
+                    data.description,
+                    data.image,
+                    data.name,
+                    data.price,
+                    data.sold,
+                    [],
+                    []
+                ))
             });
-            res.send(ItemsArray);
+
+            for (const item of itemsArray) {
+                const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
+                if (!feedbacks.empty) {
+                    var feedbacksArray = [];
+                    feedbacks.forEach(feedback => {
+                        const data = feedback.data();
+                        feedbacksArray.push(new Feedback(
+                            feedback.id,
+                            data.username,
+                            data.content,
+                            data.date,
+                            data.point
+                        ));
+                    });
+                    item.feedback = feedbacksArray;
+                }
+            }
+            res.send(itemsArray);
         }
     } catch (error) {
         res.status(400).send(error.message);
@@ -88,43 +106,43 @@ const getAllItems = async (req, res, next) => {
 
 const getItem = async (req, res, next) => {
     try {
-        const id = req.params.id;
-        const item = await firestore.collection('items').doc(id).get();
-        const itemType = await firestore.collection('items').doc(id).collection('itemtype').get();
-        const itemTypeList = [];
-        const feedbackList = [];
-        itemType.forEach((value) => {
-            itemTypeList.push(
-                new ItemType({
-                    id: value.id,
-                    category: value.data().category,
-                    price: value.data().price,
-                    quantity: value.data().quantity
-                })
-            );
-        });
-        item.data().feedback.forEach((value) => {
-            feedbackList.push(
-                new Feedback({
-                    id: feedbackList.length,
-                    username: value.username,
-                    date: value.date,
-                    content: value.content,
-                    point: value.point
-                })
-            )
-        })
+        if (req.params.itemID === undefined) res.send("Missing ItemID Value");
+        else {
+            const itemID = req.params.itemID;
+            const itemRef = await firestore.collection("items").doc(itemID).get();
 
-        res.status(200).send(new Item({
-            id: item.id,
-            code: item.data().code,
-            description: item.data().description,
-            itemtype: itemTypeList,
-            feedback: feedbackList,
-            image: item.data().image,
-            name: item.data().name
-        }))
-        
+            if (!itemRef.exists) res.send("Item does not exist");
+            else {
+                const data = itemRef.data();
+                const item = new Item(
+                    itemRef.id,
+                    data.code,
+                    data.description,
+                    data.image,
+                    data.name,
+                    data.price,
+                    data.sold,
+                    [],
+                    []
+                );
+                var feedbacksArray = [];
+                const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
+                if (!feedbacks.empty) {
+                    feedbacks.forEach(feedback => {
+                        const data = feedback.data();
+                        feedbacksArray.push(new Feedback(
+                            feedback.id,
+                            data.username,
+                            data.content,
+                            data.date,
+                            data.point
+                        ));
+                    });
+                    item.feedback = feedbacksArray;
+                }
+                res.send(item);
+            }
+        }
     } catch (error) {
         console.log(error);
         res.status(400).send(error.message);
@@ -154,24 +172,26 @@ const deleteItem = async (req, res, next) => {
 }
 
 const addFeedBack = async (req, res, next) => {
-    const {username, content, date, point, item_id} = req.body;
-    const item = await firestore.collection('items').doc(item_id);
-    const tmp = await firestore.collection('items').doc(item_id).get();
-    const feedbacks = tmp.data().feedback ? tmp.data().feedback : []
-    feedbacks.push({
-        content: content,
-            date: date,
-            point: point,
-            username: username
-    });
-    console.log(feedbacks);
-    try {
-        await item.set({
-            feedback: feedbacks
-        }, { merge: true });    
-        res.status(200).send('Add feedback successfully')
-    } catch(e){
-        res.status(500).send('Add feedback failed');
+    if (req.body.username === undefined) res.send("Missing Username Value");
+    else if (req.body.content === undefined) res.send("Missing Content Value");
+    else if (req.body.date === undefined) res.send("Missing Date Value");
+    else if (req.body.point === undefined) res.send("Missing Point Value");
+    else if (req.body.item_id === undefined) res.send("Missing Item ID Value");
+    else {
+        const { username, content, date, point, item_id } = req.body;
+        const feedback = {
+            "username": username,
+            "content": content,
+            "date": date,
+            "point": point
+        }
+        try {
+            await firestore.collection("items").doc(item_id).collection("feedback").add(feedback);
+            res.status(200).send('Add feedback successfully')
+        }
+        catch (e) {
+            res.status(500).send('Add feedback failed');
+        }
     }
 }
 

@@ -9,7 +9,9 @@ const router = express.Router();
 
 // router.post('/blog', addBlog);
 router.post('/add-cmt', addComment);
-router.get('/:id', getBlog);
-router.get('/', getAllBlogs);
+router.get('/blogs/:id', getBlog);
+router.get('/blogs', getAllBlogs);
 
-module.exports = router;
+module.exports = {
+  routes: router
+}

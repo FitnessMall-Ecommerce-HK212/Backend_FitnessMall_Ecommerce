@@ -2,7 +2,7 @@
 
 const firestore = require('../configure/firestore');
 
-const Product = require('../models/products');
+const Product = require('../models/product');
 const addProduct = async (req, res, next) => {
     try {
         const data = req.body;

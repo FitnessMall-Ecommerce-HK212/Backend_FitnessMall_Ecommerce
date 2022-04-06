@@ -11,14 +11,15 @@ const {
 
 const router = express.Router();
 
-router.get('/hot', getHotItems);
-router.post('/feedback', addFeedBack);
-router.get('/:id', getItem);
+router.get('/items/hot', getHotItems);
+router.get('/items', getAllItems);
+router.get('/item/:itemID', getItem);
+router.post('/item/feedback', addFeedBack);
 // router.post('/item', addItem);
-// router.get('/items', getAllItems);
-// router.get('/item/:id', getItem);
 // router.put('/item/:id', updateItem);
 // router.delete('/item/:id', deleteItem);
 
 
-module.exports = router;
+module.exports = {
+      routes: router
+  }

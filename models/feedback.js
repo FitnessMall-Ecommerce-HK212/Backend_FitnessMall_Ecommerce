@@ -1,6 +1,5 @@
 class Feedback {
-    constructor(props) {
-        const { id, username, content, date, point } = props;
+    constructor(id, username, content, date, point) {
         this.id = id;
         this.content = content;
         this.date = date;

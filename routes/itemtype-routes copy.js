@@ -4,7 +4,7 @@ const {addItemType,
        getItemType,
        updateItemType,
        deleteItemType
-      } = require('../controllers/usersController');
+      } = require('../controllers/itemTypeController');
 
 const router = express.Router();
 

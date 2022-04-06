@@ -21,4 +21,6 @@ router.delete('/order/:id', deleteOrder);
 // router.delete('/order/:id', deleteOrder);
 
 
-module.exports = router;
+module.exports = {
+    routes: router
+}

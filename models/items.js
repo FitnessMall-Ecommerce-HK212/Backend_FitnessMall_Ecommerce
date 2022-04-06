@@ -1,14 +1,14 @@
 class Item {
-    constructor(props) {
-        const { id, code, description, itemtype, feedback, image, name } = props;
+    constructor(id, code, description, image, name, price, sold, itemtype = [], feedback = []) {
         this.id = id;
         this.code = code;
         this.description = description;
-        this.itemtype = itemtype;
-        // itemtype is array of itemType
-        this.feedback = feedback;
         this.image = image;
         this.name = name;
+        this.price = price;
+        this.sold = sold;
+        this.itemtype = itemtype;
+        this.feedback = feedback;
     }
 }
 module.exports = Item;
