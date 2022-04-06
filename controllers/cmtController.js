@@ -14,30 +14,30 @@ const addCmt = async (req, res, next) => {
     }
 }
 
-const getAllCmts = async (req, res, next) => {
-    try {
-        //TODO edit collection path through blogs
-        const cmt = await firestore.collection('cmt');
-        const data = await cmt.get();
-        const cmtArray = [];
-        if(data.empty) {
-            res.status(404).send('No cmt record found');
-        }else {
-            data.forEach(doc => {
-                const cmt = new Cmt(
-                    doc.id,
-                    doc.data().content,
-                    doc.data().date,
-                    doc.data().user
-                );
-                cmtArray.push(cmt);
-            });
-            res.send(cmtArray);
-        }
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-}
+// const getAllCmts = async (req, res, next) => {
+//     try {
+//         //TODO edit collection path through blogs
+//         const cmt = await firestore.collection('cmt');
+//         const data = await cmt.get();
+//         const cmtArray = [];
+//         if(data.empty) {
+//             res.status(404).send('No cmt record found');
+//         }else {
+//             data.forEach(doc => {
+//                 const cmt = new Cmt(
+//                     doc.id,
+//                     doc.data().content,
+//                     doc.data().date,
+//                     doc.data().user
+//                 );
+//                 cmtArray.push(cmt);
+//             });
+//             res.send(cmtArray);
+//         }
+//     } catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// }
 
 const getCmt = async (req, res, next) => {
     try {

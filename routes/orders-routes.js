@@ -1,10 +1,10 @@
 const express = require('express');
-const {addOrder, 
-       getAllOrders, 
-       getOrder,
-       updateOrder,
-       deleteOrder
-      } = require('../controllers/ordersController');
+const { addOrder,
+      getAllOrders,
+      getOrder,
+      updateOrder,
+      deleteOrder
+} = require('../controllers/ordersController');
 
 const router = express.Router();
 
@@ -14,7 +14,11 @@ router.get('/order/:username/:orderID', getOrder);
 router.put('/order/:id', updateOrder);
 router.delete('/order/:id', deleteOrder);
 
+// router.post('/order', addOrder);
+// router.get('/orders', getAllOrders);
+// router.get('/order/:id', getOrder);
+// router.put('/order/:id', updateOrder);
+// router.delete('/order/:id', deleteOrder);
 
-module.exports = {
-    routes: router
-}
+
+module.exports = router;
