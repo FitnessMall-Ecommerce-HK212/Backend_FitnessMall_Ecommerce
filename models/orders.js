@@ -1,12 +1,13 @@
 class Order {
-    constructor(id, username, state,ts,receiptID="",shipcode="") {
+    constructor(id, username, timestamp, state, amount, receiptID, shipID = "", products = []) {
         this.id = id;
         this.username = username;
-        this.pwd = pwd;
+        this.timestamp = timestamp;
         this.state = state;
-        this.ts = ts;
+        this.amount = amount;
         this.receiptID = receiptID;
         this.shipID = shipID;
+        this.products = products;
     }
 }
 

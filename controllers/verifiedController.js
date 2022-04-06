@@ -6,7 +6,10 @@ const randtoken = require('rand-token');
 const nodemailer = require('nodemailer');
 const path = require('path');
 
-function sendEmail(email, token, displayName, verifiedLink) {
+function sendEmail(from, subject, html, email, token, displayName, verifiedLink) {
+    var from = from;
+    var subject = subject;
+    var html = html;
     var email = email;
     var token = token;
     var displayName = displayName;
@@ -19,23 +22,17 @@ function sendEmail(email, token, displayName, verifiedLink) {
             pass: process.env.GMAIL_PASS // Your password
         },
         tls: {
-                rejectUnauthorized: false
-             }
+            rejectUnauthorized: false
+        }
     });
 
     var mailOptions = {
-        from: 'Email Verification',
+        from: from,
         to: email,
-        subject: `Verify your email for Fitness Mall`,
-        html: `<p> Hello ${displayName}, </p>
-                <p> Follow this link to verify your email address. </p>
-                <p> <a href="${verifiedLink + token}"> ${verifiedLink + token} </a> </p>
-                <p> If you didn't ask to verify this address, you can ignore this email. </p>
-                <p> Thanks, </p>
-                <p> Your Fitness Mall team </p>`
-        // '<p>You requested for email verification, kindly use this <a href="http://localhost:3000/verify-email?token=' + token + '">link</a> to verify your email address</p>'
-
+        subject: subject,
+        html: html
     };
+
     mail.sendMail(mailOptions, function (error, info) {
         if (error) {
             return 1
@@ -68,7 +65,7 @@ const sendEmailVerifed = async (req, res, next) => {
             else {
                 if (user_verified.empty) {
                     var token = randtoken.generate(20);
-                    var displayName, verifiedLink, id;
+                    var displayName, verifiedLink, id, from, subject, html;
 
                     user.forEach(doc => {
                         displayName = doc.data().name;
@@ -76,8 +73,16 @@ const sendEmailVerifed = async (req, res, next) => {
                     });
 
                     verifiedLink = `http://localhost:8080/api/verify_email?token=`;
+                    from = 'Email Verification';
+                    subject = `Verify your email for Fitness Mall`;
+                    html = `<p> Hello ${displayName}, </p>
+                            <p> Follow this link to verify your email address. </p>
+                            <p> <a href="${verifiedLink + token}"> ${verifiedLink + token} </a> </p>
+                            <p> If you didn't ask to verify this address, you can ignore this email. </p>
+                            <p> Thanks, </p>
+                            <p> Your Fitness Mall team </p>`;
 
-                    var sent = sendEmail(email, token, displayName, verifiedLink);
+                    var sent = sendEmail(from, subject, html, email, token, displayName, verifiedLink);
                     if (sent != '0') {
                         var data = {
                             token: token,
@@ -104,7 +109,7 @@ const sendEmailVerifed = async (req, res, next) => {
 
 const verifiedEmail = async (req, res, next) => {
     try {
-        if (req.query.token === undefined) 
+        if (req.query.token === undefined)
             res.send("Missing token value");
         else {
             const token = await firestore.collection('users')

@@ -138,9 +138,9 @@ const getUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
     try {
         if (req.body.username === undefined) res.send('Missing username value');
-        else if (req.body.password !== undefined) res.send('Can not update password via this method');
+        // else if (req.body.password !== undefined) res.send('Can not update password via this method');
         // else if (req.body.name === undefined) res.send('Missing name value');
-        else if (req.body.email !== undefined) res.send("Email can't be update");
+        else if (req.body.email !== undefined) res.send("Email can't be update via this method");
         // else if (req.body.avatar === undefined) res.send('Missing avatar value');
         // else if (req.body.height === undefined) res.send('Missing height value');
         // else if (req.body.weight === undefined) res.send('Missing weight value');
