@@ -29,9 +29,9 @@ const addOrder = async (req, res, next) => {
             });
 
             var productsRef = await firestore.collection("orders").doc(docRef.id).collection("products");
-            var count = 0;
+
             products.forEach(async product => {
-                count++;
+
                 await productsRef.add({
                     "code": product.code,
                     "itemType": product.itemType,
@@ -44,14 +44,15 @@ const addOrder = async (req, res, next) => {
                 "account": account,
                 "amount": amount,
                 "timestamp": timestamp,
-                "username": username
+                "username": username,
+                "state": "Đã thanh toán"
             });
 
             await firestore.collection("orders").doc(docRef.id).update({
                 "receiptID": receiptRef.id
             });
 
-            res.send({ msg: "Tạo đơn hàng thành công", count: count });
+            res.send("Tạo đơn hàng thành công");
         }
         // const logistics_interface = `{"eccompanyid":"CUSMODEL","customerid":"084LC012345","logisticprviderid":"JNT","txlogisticid":"322SA1112A11","fieldlist":[{"txlogisticid":"322SA1112A11","fieldname": "status","fieldvalue": "WITHDRAW","remark": "test"}]}`;
         // const key = '04fc653c0f661e1204bd804774e01824';

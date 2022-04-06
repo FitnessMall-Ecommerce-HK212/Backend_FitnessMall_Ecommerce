@@ -23,8 +23,8 @@ class MomoRequest {
 
     generateSignature(){
         const rawSignature = `accessKey=${momoConfig.access_key}&amount=${this.amount}&extraData=${this.extraData}&ipnUrl=${this.ipnUrl}&orderId=${this.orderId}&orderInfo=${this.orderInfo}&partnerCode=${this.partnerCode}&redirectUrl=${this.redirectUrl}&requestId=${this.requestId}&requestType=${this.requestType}`
-        console.log('--------RAW SIGNATURE------------');
-        console.log(rawSignature);
+        // console.log('--------RAW SIGNATURE------------');
+        // console.log(rawSignature);
         const signature_ = crypto.createHmac('sha256', momoConfig.secret_key).update(rawSignature).digest('hex');
         return signature_;
     }

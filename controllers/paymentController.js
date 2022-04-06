@@ -3,6 +3,7 @@ const firestore = require('../configure/firestore');
 
 const MoMoRequest = require('../models/momoRequest');
 const momoConfig = require('../configure/momo');
+const uuid = require('uuid');
 
 const momoPayment = async (req, res, next) => {
     const orderId = req.body.order_id;
@@ -12,7 +13,7 @@ const momoPayment = async (req, res, next) => {
     const momoRequest = new MoMoRequest({
         amount: data.amount,
         username: data.username,
-        orderId: orderId
+        orderId: uuid.v1()
     });
     const body = JSON.stringify(momoRequest);
     const headers = {
@@ -27,11 +28,11 @@ const momoPayment = async (req, res, next) => {
             headers: headers
         });
         if (momo_res.data.resultCode === 0){
-            res.redirect(momo_res.data.payUrl);
+            res.send(momo_res.data);
+            // res.redirect(momo_res.data.payUrl);
         }
     }catch(e){
-        console.log(e);
-        res.status(500).send("Something's wrong, please try again later");
+        res.status(500).send(e.message);
     }
     
 }
