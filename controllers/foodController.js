@@ -2,6 +2,11 @@
 
 const firestore = require('../configure/firestore'); 
 const Food = require('../models/users'); 
+
+const updateFeedback = async (req, res, next) => {
+    res.send("Hello");
+}
+
 const addFood = async (req, res, next) => {
     try {
         const data = req.body;
@@ -83,5 +88,6 @@ module.exports = {
     getAllFoods,
     getFood,
     updateFood,
-    deleteFood
+    deleteFood,
+    updateFeedback
 }

@@ -12,7 +12,7 @@ const config = require('./configure/config');
 // const blogsRoutes = require('./routes/blogs-routes');
 // const cmtsRoutes = require('./routes/cmt-routes');
 // const feedbacksRoutes = require('./routes/feedback-routes');
-// const foodsRoutes = require('./routes/food-routes');
+const foodsRoutes = require('./routes/food-routes');
 const informationsRoutes = require('./routes/informations-routes');
 // const itemsRoutes = require('./routes/items-routes');
 // const itemTypeRoutes = require('./routes/itemtype-routes copy');
@@ -26,7 +26,7 @@ const routes = [
     // blogsRoutes,
     // cmtsRoutes,
     // feedbacksRoutes,
-    // foodsRoutes,
+    foodsRoutes,
     informationsRoutes,
     // itemsRoutes,
     // itemTypeRoutes,
@@ -57,9 +57,6 @@ app.use(express.static(__dirname));
 app.use(cookieParser());
 
 routes.forEach(route => { app.use('/api', route.routes) });
-// app.use('/api', studentRoutes.routes);
-// app.use('/api', ordersRoutes.routes);
-
 
 app.listen(config.port, () => console.log('App is listening on url http://localhost:' + config.port));
 

@@ -3,11 +3,13 @@ const {addFood,
        getAllFoods, 
        getFood,
        updateFood,
-       deleteFood
+       deleteFood,
+       updateFeedback
       } = require('../controllers/usersController');
 
 const router = express.Router();
 
+router.get('/update', updateFeedback);
 router.post('/food', addFood);
 router.get('/foods', getAllFoods);
 router.get('/food/:id', getFood);
