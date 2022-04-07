@@ -5,7 +5,7 @@ const crypto = require('crypto');
 
 class MomoRequest {
     constructor(props){
-        const {amount, username, orderId} = props;
+        const {amount, username, orderId, extraData = ''} = props;
         this.partnerCode = momoConfig.partner_code;
         this.partnerName = 'Fitness Mall';
         this.storeId = 'Fitness Mall';
@@ -15,7 +15,7 @@ class MomoRequest {
         this.orderInfo = 'FITNESS';
         this.redirectUrl = momoConfig.redirectUrl;
         this.requestType = 'captureWallet';
-        this.extraData = '';
+        this.extraData = extraData;
         this.lang = 'vi';
         this.ipnUrl = momoConfig.ipnUrl;
         this.signature = this.generateSignature();

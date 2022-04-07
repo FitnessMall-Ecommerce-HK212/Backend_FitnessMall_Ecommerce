@@ -13,10 +13,12 @@ const addOrder = async (req, res, next) => {
         if (req.body.username === undefined) res.send('Missing Username Value');
         else if (req.body.products === undefined) res.send('Missing Products Value');
         else if (req.body.account === undefined) res.send('Missing Account Value');
+        else if (req.body.information_id === undefined) res.send("Missing Information ID Value");
         else {
             const username = req.body.username;
             const products = req.body.products;
             const account = req.body.account;
+            const information_id = req.body.information_id;
             const timestamp = new Date();
 
             const amount = products.reduce(function (total, num) {
