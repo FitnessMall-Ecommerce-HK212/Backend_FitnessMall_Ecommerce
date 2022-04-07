@@ -140,7 +140,7 @@ const updateUser = async (req, res, next) => {
         if (req.body.username === undefined) res.send('Missing username value');
         // else if (req.body.password !== undefined) res.send('Can not update password via this method');
         // else if (req.body.name === undefined) res.send('Missing name value');
-        else if (req.body.email !== undefined) res.send("Email can't be update via this method");
+        // else if (req.body.email !== undefined) res.send("Email can't be update via this method");
         // else if (req.body.avatar === undefined) res.send('Missing avatar value');
         // else if (req.body.height === undefined) res.send('Missing height value');
         // else if (req.body.weight === undefined) res.send('Missing weight value');
@@ -149,10 +149,11 @@ const updateUser = async (req, res, next) => {
                 .where("username", "==", req.body.username)
                 .get();
 
-            var id;
+            var id, email;
 
             user.forEach((doc) => {
                 id = doc.id;
+                email = doc.data().email;
             });
 
             // console.log(email, " ", id);
@@ -162,8 +163,20 @@ const updateUser = async (req, res, next) => {
             //     .get();
 
             // if (email === req.body.email) {
-            await firestore.collection('users').doc(id).update(req.body);
-            res.send('Update information successfully');
+            if (req.body.email === undefined || req.body.email === email) {
+                await firestore.collection('users').doc(id).update(req.body);
+                res.send('Update information successfully');
+            }
+            else {
+                const email = await firestore.collection("users").where("email", "==", req.body.email).get();
+                if (email.empty) {
+                    await firestore.collection("users").doc(id).update({ ...req.body, verified: false });
+                    res.send('Update information successfully');
+                } else {
+                    res.send("Update failed! Email has existed already");
+                }
+            }
+
             // } else res.send('Update failed! Email has existed already');
         }
     } catch (error) {

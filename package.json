@@ -25,12 +25,14 @@
     "express-flash": "0.0.2",
     "express-session": "^1.17.2",
     "firebase": "^8.10.1",
+    "fs": "0.0.1-security",
     "https": "^1.0.0",
     "md5": "^2.3.0",
     "nodemailer": "^6.7.3",
     "path": "^0.12.7",
     "rand-token": "^1.0.1",
     "smtp": "^0.1.4",
+    "util": "^0.12.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

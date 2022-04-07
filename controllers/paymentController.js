@@ -31,7 +31,7 @@ const momoPayment = async (req, res, next) => {
         });
         if (momo_res.data.resultCode === 0) {
             // console.log(momo_res.data);
-            res.send(momo_res.data);
+            res.send(momo_res.data.payUrl);
         }
     } catch (e) {
         res.status(500).send(e.message);
