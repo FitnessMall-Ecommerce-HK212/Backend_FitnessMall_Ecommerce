@@ -1,6 +1,8 @@
 'use strict';
 
 const firestore = require('../configure/firestore');
+const axios = require('axios');
+const uuid = require('uuid');
 
 const Order = require('../models/orders');
 const md5 = require('md5');
@@ -23,7 +25,7 @@ const addOrder = async (req, res, next) => {
 
             var docRef = await firestore.collection("orders").add({
                 "amount": amount,
-                "state": "Đang giao hàng",
+                "state": "Chưa thanh toán",
                 "timestamp": timestamp,
                 "username": username
             });
@@ -40,19 +42,29 @@ const addOrder = async (req, res, next) => {
                 });
             })
 
+            const momoOrderID = uuid.v1();
+
             var receiptRef = await firestore.collection("receipts").add({
                 "account": account,
                 "amount": amount,
                 "timestamp": timestamp,
                 "username": username,
-                "state": "Đã thanh toán"
+                "state": "Chưa thanh toán",
+                "momoOrderID": momoOrderID
             });
 
             await firestore.collection("orders").doc(docRef.id).update({
                 "receiptID": receiptRef.id
             });
 
-            res.send("Tạo đơn hàng thành công");
+            try {
+                const result = await axios.post('http://localhost:8080/api/momo', { order_id: docRef.id, momoOrderID: momoOrderID });
+                // console.log(result);
+                res.send(result.data);
+            } catch (e) {
+                res.status(500).send(e);
+            }
+            // res.send("Tạo đơn hàng thành công");
         }
         // const logistics_interface = `{"eccompanyid":"CUSMODEL","customerid":"084LC012345","logisticprviderid":"JNT","txlogisticid":"322SA1112A11","fieldlist":[{"txlogisticid":"322SA1112A11","fieldname": "status","fieldvalue": "WITHDRAW","remark": "test"}]}`;
         // const key = '04fc653c0f661e1204bd804774e01824';
