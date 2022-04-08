@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "node server.js",
+    "run": "nodemon server.js"
   },
   "engines": {
     "node": "12.16.1"
@@ -28,6 +29,7 @@
     "fs": "0.0.1-security",
     "https": "^1.0.0",
     "md5": "^2.3.0",
+    "moment": "^2.29.2",
     "nodemailer": "^6.7.3",
     "path": "^0.12.7",
     "rand-token": "^1.0.1",

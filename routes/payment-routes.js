@@ -1,10 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-const { momoPayment, checkPaymentMoMo, deleteR } = require('../controllers/paymentController');
+const { momoPayment,
+    zalopayPayment,
+    cashPayment,
+    paypalPayment,
+    checkPaymentMoMo,
+    checkPaymentZalopay,
+    checkPaymentPaypal } = require('../controllers/paymentController');
+
 router.post('/momo', momoPayment);
+router.post('/zalopay', zalopayPayment);
+router.post('/paypal', paypalPayment);
+router.post('/cash', cashPayment);
 router.get('/momo/check_payment', checkPaymentMoMo);
-router.delete('/test/delete', deleteR);
+router.get('/zalopay/check_payment', checkPaymentZalopay);
+router.get('/paypal/check_payment', checkPaymentPaypal);
 
 module.exports = {
     routes: router

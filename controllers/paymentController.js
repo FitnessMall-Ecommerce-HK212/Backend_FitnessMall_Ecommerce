@@ -6,46 +6,6 @@ const momoConfig = require('../configure/momo');
 const { token, shop_id, client_id } = require('../configure/GHN');
 const { normalize } = require('../utils/string_utils');
 
-const momoPayment = async (req, res, next) => {
-    const orderId = req.body.order_id;
-    const momoOrderId = req.body.momoOrderID;
-    const extraData = req.body.extraData;
-
-    const orderSnapshot = await firestore.collection('orders').doc(orderId);
-    const order = await orderSnapshot.get();
-    const data = order.data();
-
-    const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
-    const total_amount = receiptSnapshot.data().total_amount;
-
-    const momoRequest = new MoMoRequest({
-        amount: total_amount,
-        username: data.username,
-        orderId: momoOrderId,
-        extraData: extraData
-    });
-    const body = JSON.stringify(momoRequest);
-    const headers = {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Content-Length': Buffer.byteLength(body)
-    }
-    try {
-        const momo_res = await axios({
-            method: 'post',
-            url: momoConfig.connection.url,
-            data: body,
-            headers: headers
-        });
-        if (momo_res.data.resultCode === 0) {
-            // console.log(momo_res.data);
-            res.send(momo_res.data.payUrl);
-        }
-    } catch (e) {
-        res.status(500).send(e.message);
-    }
-
-}
-
 async function createGHNorder(props) {
     const { information } = props;
 
@@ -133,6 +93,99 @@ async function createGHNorder(props) {
     }
 }
 
+const momoPayment = async (req, res, next) => {
+    const orderId = req.body.order_id;
+    const momoOrderId = req.body.momoOrderID;
+    const extraData = req.body.extraData;
+
+    const orderSnapshot = await firestore.collection('orders').doc(orderId);
+    const order = await orderSnapshot.get();
+    const data = order.data();
+
+    const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
+    const total_amount = receiptSnapshot.data().total_amount;
+
+    const momoRequest = new MoMoRequest({
+        amount: total_amount,
+        username: data.username,
+        orderId: momoOrderId,
+        extraData: extraData
+    });
+    const body = JSON.stringify(momoRequest);
+    const headers = {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Content-Length': Buffer.byteLength(body)
+    }
+    try {
+        const momo_res = await axios({
+            method: 'post',
+            url: momoConfig.connection.url,
+            data: body,
+            headers: headers
+        });
+        if (momo_res.data.resultCode === 0) {
+            res.send(momo_res.data.payUrl);
+        }
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+
+}
+
+const zalopayPayment = async (req, res, next) => {
+    const orderId = req.body.order_id;
+    const zalopayOrderId = req.body.zalopayOrderID;
+    const extraData = req.body.extraData;
+
+    const orderSnapshot = await firestore.collection('orders').doc(orderId);
+    const order = await orderSnapshot.get();
+    const data = order.data();
+
+    const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
+    const total_amount = receiptSnapshot.data().total_amount;
+
+    const config = {
+        appid: "554",
+        key1: "8NdU5pG5R2spGHGhyO99HN1OhD8IQJBn",
+        key2: "uUfsWgfLkRLzq6W2uNXTCxrfxs51auny",
+        endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/createorder"
+      };
+
+    const zalopayRequest = new ZaloPayRequest({
+        amount: total_amount,
+        username: data.username,
+        orderId: zalopayOrderId,
+        extraData: extraData
+    });
+
+    const body = JSON.stringify(momoRequest);
+    const headers = {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Content-Length': Buffer.byteLength(body)
+    }
+    try {
+        const momo_res = await axios({
+            method: 'post',
+            url: momoConfig.connection.url,
+            data: body,
+            headers: headers
+        });
+        if (momo_res.data.resultCode === 0) {
+            res.send(momo_res.data.payUrl);
+        }
+    } catch (e) {
+        res.status(500).send(e.message);
+    }
+}
+
+const paypalPayment = async (req, res, next) => {
+    
+}
+
+const cashPayment = async (req, res, next) => {
+    
+}
+
 const checkPaymentMoMo = async (req, res, next) => {
     try {
         var information = { amount: "'0'" };
@@ -183,20 +236,20 @@ const checkPaymentMoMo = async (req, res, next) => {
     }
 }
 
-const deleteR = async (req, res, next) => {
-    // const orders = await firestore.collection("orders").where("username", "==", "giacat").get();
-    // orders.forEach(async order => {
-    //     await firestore.collection("receipts").doc(order.data().receiptID).delete();
-    //     // await firestore.collection("orders").doc(order.id).collection("information").delete();
-    //     // await firestore.collection("orders").doc(order.id).collection("products").delete();
-    //     // await firestore.collection("orders").doc(order.id).delete();
-    // });
+const checkPaymentZalopay = async (req, res, next) => {
 
-    res.send("Successfully");
+}
+
+const checkPaymentPaypal = async (req, res, next) => {
+
 }
 
 module.exports = {
     momoPayment,
+    zalopayPayment,
+    paypalPayment,
+    cashPayment,
     checkPaymentMoMo,
-    deleteR
+    checkPaymentZalopay,
+    checkPaymentPaypal
 };

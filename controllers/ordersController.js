@@ -129,7 +129,7 @@ const addOrder = async (req, res, next) => {
             // Create order - add information, products
             var docRef = await firestore.collection("orders").add({
                 "amount": amount,
-                "state": "Chưa thanh toán",
+                "state": req.body.account === "TIỀN MẶT" ? "Thanh toán khi nhận hàng" : "Chưa thanh toán",
                 "timestamp": timestamp,
                 "username": username,
                 "information": information_data,
@@ -138,14 +138,13 @@ const addOrder = async (req, res, next) => {
 
             // Create receipts for payment
             const total_amount = amount + shipping_fee - discount_order - discount_shipping;
-            const momoOrderID = uuid.v1();
+            const orderID = uuid.v1();
             var receiptRef = await firestore.collection("receipts").add({
                 "account": account,
                 "total_amount": total_amount,
                 "timestamp": timestamp,
                 "username": username,
-                "state": "Chưa thanh toán",
-                "momoOrderID": momoOrderID,
+                "state": req.body.account === "TIỀN MẶT" ? "Thanh toán khi nhận hàng" : "Chưa thanh toán",
                 "vouchers": [],
                 "receipt_details": {
                     "order_amount": amount,
@@ -154,6 +153,25 @@ const addOrder = async (req, res, next) => {
                     "discount_shipping": discount_shipping
                 }
             });
+            
+            // Add order type id to receipt
+            switch (req.body.account) {
+                case 'MOMO':
+                    await firestore.collection("receipts").doc(receiptRef.id).update({
+                        "momoOrderID": orderID,
+                    });
+                    break;
+                case 'ZALOPAY': 
+                    await firestore.collection("receipts").doc(receiptRef.id).update({
+                        "zalopayOrderID": orderID,
+                    });
+                    break;
+                case 'PAYPAL':
+                    await firestore.collection("receipts").doc(receiptRef.id).update({
+                        "paypalOrderID": orderID,
+                    });
+                    break;
+            }
 
             // Update receiptID for order
             await firestore.collection("orders").doc(docRef.id).update({
@@ -163,7 +181,21 @@ const addOrder = async (req, res, next) => {
             // Get PayUrl
             const extraData = `orderID=${docRef.id},phone=${information_data.phone},receiver=${information_data.receiver},province=${information_data.province},district=${information_data.district},ward=${information_data.ward},address=${information_data.address}`;
             try {
-                const result = await axios.post('http://localhost:8080/api/momo', { order_id: docRef.id, momoOrderID: momoOrderID, extraData: extraData });
+                var result;
+                switch (req.body.account) {
+                    case 'MOMO':
+                        result = await axios.post('http://localhost:8080/api/momo', { order_id: docRef.id, momoOrderID: orderID, extraData: extraData });
+                        break;
+                    case 'ZALOPAY':
+                        result = await axios.post('http://localhost:8080/api/zalopay', { order_id: docRef.id, zalopayOrderID: orderID, extraData: extraData });
+                        break;
+                    case 'PAYPAL':
+                        result = await axios.post('http://localhost:8080/api/paypal', { order_id: docRef.id, paypalOrderID: orderID, extraData: extraData });
+                        break;
+                    case 'TIỀN MẶT':
+                        result = await axios.post('http://localhost:8080/api/cash', { order_id: docRef.id, extraData: extraData });
+                        break;
+                }
                 res.send(result.data);
             } catch (e) {
                 res.status(500).send(e);
