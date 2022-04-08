@@ -15,6 +15,7 @@ const informationsRoutes = require('./routes/informations-routes');
 const itemsRoutes = require('./routes/items-routes');
 const ordersRoutes = require('./routes/orders-routes');
 const paymentsRoutes = require('./routes/payment-routes');
+const receiptsRoutes = require('./routes/receipts-routes');
 const usersRoutes = require('./routes/users-routes');
 const verifiedRoutes = require('./routes/verified-routes');
 
@@ -26,7 +27,8 @@ const routes = [
     ordersRoutes,
     usersRoutes,
     verifiedRoutes,
-    paymentsRoutes
+    paymentsRoutes,
+    receiptsRoutes
 ];
 
 const app = express();

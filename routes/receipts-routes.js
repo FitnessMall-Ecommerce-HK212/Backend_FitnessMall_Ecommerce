@@ -8,11 +8,11 @@ const {addReceipt,
 
 const router = express.Router();
 
-router.post('/receipt', addReceipt);
-router.get('/receipts', getAllReceipts);
-router.get('/receipt/:id', getReceipt);
-router.put('/receipt/:id', updateReceipt);
-router.delete('/receipt/:id', deleteReceipt);
+// router.post('/receipt', addReceipt);
+// router.get('/receipts', getAllReceipts);
+router.get('/receipt/:receiptID', getReceipt);
+// router.put('/receipt/:id', updateReceipt);
+// router.delete('/receipt/:id', deleteReceipt);
 
 
 module.exports = {

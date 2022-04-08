@@ -4,6 +4,7 @@ const firestore = require('../configure/firestore');
 const MoMoRequest = require('../models/momoRequest');
 const momoConfig = require('../configure/momo');
 const { token, shop_id, client_id } = require('../configure/GHN');
+const { normalize } = require('../utils/string_utils');
 
 const momoPayment = async (req, res, next) => {
     const orderId = req.body.order_id;
@@ -14,8 +15,11 @@ const momoPayment = async (req, res, next) => {
     const order = await orderSnapshot.get();
     const data = order.data();
 
+    const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
+    const total_amount = receiptSnapshot.data().total_amount;
+
     const momoRequest = new MoMoRequest({
-        amount: data.amount,
+        amount: total_amount,
         username: data.username,
         orderId: momoOrderId,
         extraData: extraData
@@ -50,7 +54,7 @@ async function createGHNorder(props) {
         url: 'http://localhost:8080/api/infos/province'
     });
 
-    const province_inform = province.data.filter(pro => pro.province_name.toString() === information.province.toString());
+    const province_inform = province.data.filter(pro => normalize(pro.province_name) === normalize(information.province));
     
     const district = await axios({
         method: 'GET',
@@ -60,9 +64,7 @@ async function createGHNorder(props) {
         }
     });
 
-    const district_inform = district.data.filter(dis => {
-        return dis.district_name.toString() === information.district.toString()
-    });
+    const district_inform = district.data.filter(dis => normalize(dis.district_name) === normalize(information.district));
     
     const ward = await axios({
         method: 'GET',
@@ -72,7 +74,7 @@ async function createGHNorder(props) {
         }
     });
 
-    const ward_inform = ward.data.filter(war => war.ward_name = information.ward);
+    const ward_inform = ward.data.filter(war => normalize(war.ward_name) === normalize(information.ward));
 
     const service_inform = await axios({
         method: 'GET',
@@ -82,7 +84,6 @@ async function createGHNorder(props) {
         }
     });
 
-    // console.log(service_inform);
     const body = {
         "to_name": information.receiver,
         "to_phone": information.phone,
@@ -92,16 +93,18 @@ async function createGHNorder(props) {
         "weight": 20,
         "length": 30,
         "width": 40,
-        "height": 50,
+        "height": 10,
         "cod_amount": parseInt(information.amount.split("'")[1]),
         "service_type_id": service_inform.data.service_type_id,
         "service_id": service_inform.data.service_id,
-        "payment_type_id": 2,
+        "payment_type_id": information.payment_type_id,
         "required_note": "KHONGCHOXEMHANG",
         "Items": [
     
         ]
     }
+
+    // console.log(body);
 
     const result = await axios({
         method: "POST",
@@ -120,7 +123,8 @@ async function createGHNorder(props) {
         return {
             message: result.data.code_message_value,
             shipID: result.data.data.order_code,
-            expectedDeliveryTime: result.data.data.expected_delivery_time
+            expectedDeliveryTime: result.data.data.expected_delivery_time,
+            total_fee: result.data.data.total_fee
         }
     } else {
         return {
@@ -131,12 +135,13 @@ async function createGHNorder(props) {
 
 const checkPaymentMoMo = async (req, res, next) => {
     try {
-        var information = { amount: req.query.amount };
+        var information = { amount: "'0'" };
         const extraData = req.query.extraData;
+        
         const result_code = req.query.resultCode;
         const momoOrderID = req.query.orderId;
 
-        extraData.substring(1, extraData.length - 1).split(',').forEach(field => {
+        extraData.split(',').forEach(field => {
             const arr_field = field.split('=');
             information = {
                 ...information,
@@ -144,29 +149,34 @@ const checkPaymentMoMo = async (req, res, next) => {
             }
         });
 
-        createGHNorder({ information });
+        information.payment_type_id = 1;
 
-        // const receipt = await firestore.collection("receipts").where("momoOrderID", "==", momoOrderID).get();
+        var ship_details = {};
 
-        // var id;
-        // receipt.forEach(doc => {
-        //     id = doc.id;
-        // });
+        result_code === "0" ? ship_details = await createGHNorder({ information }) : 0;
 
-        // await firestore.collection("receipts").doc(id).update({
-        //     state: result_code === "0" ? "Đã thanh toán" : "Đã hủy"
-        // })
+        const receipt = await firestore.collection("receipts").where("momoOrderID", "==", momoOrderID).get();
 
-        // const order = await firestore.collection("orders").where("receiptID", "==", id).get();
+        var id;
+        receipt.forEach(doc => {
+            id = doc.id;
+        });
 
-        // var orderid;
-        // order.forEach(doc => {
-        //     orderid = doc.id;
-        // })
+        await firestore.collection("receipts").doc(id).update({
+            state: result_code === "0" ? "Đã thanh toán" : "Đã hủy",
+            ship_details: ship_details
+        })
 
-        // await firestore.collection("orders").doc(orderid).update({
-        //     state: result_code === "0" ? "Đang giao hàng" : "Đã hủy"
-        // })
+        const order = await firestore.collection("orders").where("receiptID", "==", id).get();
+
+        var orderid;
+        order.forEach(doc => {
+            orderid = doc.id;
+        })
+
+        await firestore.collection("orders").doc(orderid).update({
+            state: result_code === "0" ? "Đã thanh toán" : "Đã hủy"
+        })
         res.status(200).send("Kiểm tra đơn hàng thành công");
     } catch (e) {
         res.status(500).send(e);
@@ -174,13 +184,13 @@ const checkPaymentMoMo = async (req, res, next) => {
 }
 
 const deleteR = async (req, res, next) => {
-    const orders = await firestore.collection("orders").where("username", "==", "giacat").get();
-    orders.forEach(async order => {
-        await firestore.collection("receipts").doc(order.data().receiptID).delete();
-        // await firestore.collection("orders").doc(order.id).collection("information").delete();
-        // await firestore.collection("orders").doc(order.id).collection("products").delete();
-        // await firestore.collection("orders").doc(order.id).delete();
-    });
+    // const orders = await firestore.collection("orders").where("username", "==", "giacat").get();
+    // orders.forEach(async order => {
+    //     await firestore.collection("receipts").doc(order.data().receiptID).delete();
+    //     // await firestore.collection("orders").doc(order.id).collection("information").delete();
+    //     // await firestore.collection("orders").doc(order.id).collection("products").delete();
+    //     // await firestore.collection("orders").doc(order.id).delete();
+    // });
 
     res.send("Successfully");
 }
