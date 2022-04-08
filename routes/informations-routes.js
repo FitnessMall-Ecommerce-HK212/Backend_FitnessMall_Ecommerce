@@ -6,7 +6,8 @@ const {addInformation,
        deleteInformation,
        getProvince,
        getDistrict,
-       getWard
+       getWard,
+       getService
       } = require('../controllers/informationsController');
 
 const router = express.Router();
@@ -15,6 +16,7 @@ const router = express.Router();
 router.get('/infos/province', getProvince);
 router.get('/infos/district', getDistrict);
 router.get('/infos/ward', getWard);
+router.get('/infos/service', getService);
 
 router.get('/infos/:username', getAllInformations);
 router.get('/info/:username/:id', getInformation);

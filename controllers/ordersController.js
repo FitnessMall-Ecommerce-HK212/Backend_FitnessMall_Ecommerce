@@ -14,38 +14,47 @@ const addOrder = async (req, res, next) => {
         else if (req.body.products === undefined) res.send('Missing Products Value');
         else if (req.body.account === undefined) res.send('Missing Account Value');
         else if (req.body.information_id === undefined) res.send("Missing Information ID Value");
+        else if (!['MOMO', 'ZALOPAY', 'PAYPAL'].includes(req.body.account)) res.send("Account Value doesn't match")
         else {
+            // Get data from request body
             const username = req.body.username;
             const products = req.body.products;
             const account = req.body.account;
             const information_id = req.body.information_id;
             const timestamp = new Date();
 
+            // Get total amount of order
             const amount = products.reduce(function (total, num) {
                 return total += num.quantity * num.unit_price;
             }, 0);
+            
+            // Get user id
+            var user = await firestore.collection("users").where("username", "==", username).get();
+            var user_id;
+            user.forEach(doc => {
+                user_id = doc.id
+            });
 
+            // Get information for order
+            const information = await firestore.collection("users")
+                .doc(user_id)
+                .collection("informations")
+                .doc(information_id)
+                .get();
+            const information_data = information.data();
+
+            // Create order - add information, products
             var docRef = await firestore.collection("orders").add({
                 "amount": amount,
                 "state": "Chưa thanh toán",
                 "timestamp": timestamp,
-                "username": username
+                "username": username,
+                "information": information_data,
+                "products": products
             });
 
-            var productsRef = await firestore.collection("orders").doc(docRef.id).collection("products");
-
-            products.forEach(async product => {
-
-                await productsRef.add({
-                    "code": product.code,
-                    "itemType": product.itemType,
-                    "quantity": product.quantity,
-                    "unit_price": product.unit_price
-                });
-            })
-
+            // Create receipts for payment
             const momoOrderID = uuid.v1();
-
             var receiptRef = await firestore.collection("receipts").add({
                 "account": account,
                 "amount": amount,
@@ -55,28 +64,21 @@ const addOrder = async (req, res, next) => {
                 "momoOrderID": momoOrderID
             });
 
+            // Update receiptID for order
             await firestore.collection("orders").doc(docRef.id).update({
                 "receiptID": receiptRef.id
             });
 
+            // Get PayUrl
+            const extraData = `orderID=${docRef.id},phone=${information_data.phone},receiver=${information_data.receiver},province=${information_data.province},district=${information_data.district},ward=${information_data.ward},address=${information_data.address}`;            
             try {
-                const result = await axios.post('http://localhost:8080/api/momo', { order_id: docRef.id, momoOrderID: momoOrderID });
-                // console.log(result);
+                const result = await axios.post('http://localhost:8080/api/momo', { order_id: docRef.id, momoOrderID: momoOrderID, extraData: extraData });
                 res.send(result.data);
             } catch (e) {
                 res.status(500).send(e);
             }
-            // res.send("Tạo đơn hàng thành công");
         }
-        // const logistics_interface = `{"eccompanyid":"CUSMODEL","customerid":"084LC012345","logisticprviderid":"JNT","txlogisticid":"322SA1112A11","fieldlist":[{"txlogisticid":"322SA1112A11","fieldname": "status","fieldvalue": "WITHDRAW","remark": "test"}]}`;
-        // const key = '04fc653c0f661e1204bd804774e01824';
 
-        // const data_digest = Buffer.from(md5(logistics_interface + key)).toString('base64');
-        // res.send(data_digest);
-
-        // const data = req.body;
-        // await firestore.collection('orders').doc().set(data); 
-        // res.send('Record saved successfuly');
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -102,28 +104,12 @@ const getAllOrders = async (req, res, next) => {
                         doc.data().state,
                         doc.data().amount,
                         doc.data().receiptID,
-                        doc.data().shipID
+                        doc.data().shipID,
+                        doc.data().products,
+                        doc.data().information
                     );
                     OrdersArray.push(order);
                 });
-
-                for (var order of OrdersArray) {
-                    const products = await firestore.collection("orders").doc(order.id).collection("products").get();
-                    var productArray = [];
-                    if (!products.exists) {
-                        products.forEach(doc => {
-                            const product = new Product(
-                                doc.id,
-                                doc.data().code,
-                                doc.data().itemType,
-                                doc.data().quantity,
-                                doc.data().unit_price
-                            );
-                            productArray.push(product);
-                        })
-                    }
-                    order.products = productArray;
-                }
                 res.send(OrdersArray);
             }
         }
@@ -152,24 +138,10 @@ const getOrder = async (req, res, next) => {
                     orders.data().state,
                     orders.data().amount,
                     orders.data().receiptID,
-                    orders.data().shipID
+                    orders.data().shipID,
+                    orders.data().products,
+                    orders.data().information
                 );
-
-                const products = await firestore.collection("orders").doc(order.id).collection("products").get();
-                var productArray = [];
-                if (!products.exists) {
-                    products.forEach(doc => {
-                        const product = new Product(
-                            doc.id,
-                            doc.data().code,
-                            doc.data().itemType,
-                            doc.data().quantity,
-                            doc.data().unit_price
-                        );
-                        productArray.push(product);
-                    })
-                }
-                order.products = productArray;
 
                 res.send(order);
             }

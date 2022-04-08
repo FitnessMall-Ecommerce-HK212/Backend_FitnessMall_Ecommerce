@@ -1,5 +1,5 @@
 class Order {
-    constructor(id, username, timestamp, state, amount, receiptID, shipID = "", products = []) {
+    constructor(id, username, timestamp, state, amount, receiptID, shipID = "", products = [], information = {}) {
         this.id = id;
         this.username = username;
         this.timestamp = timestamp;
@@ -8,6 +8,7 @@ class Order {
         this.receiptID = receiptID;
         this.shipID = shipID;
         this.products = products;
+        this.information = information;
     }
 }
 

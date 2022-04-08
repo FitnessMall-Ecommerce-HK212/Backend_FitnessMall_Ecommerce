@@ -215,7 +215,7 @@ const getDistrict = async (req, res, next) => {
                     'token': token
                 },
                 url: 'https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district',
-                body: {
+                params: {
                     "province_id": req.query.province_id
                 }
             });
@@ -273,6 +273,40 @@ const getWard = async (req, res, next) => {
     }
 }
 
+const getService = async (req, res, next) => {
+    try {
+        if (req.query.district_id === undefined) res.send("Missing District ID Value");
+        else {
+            const result = await axios({
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'token': token
+                },
+                url: 'https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/available-services',
+                params: {
+                    "shop_id": shop_id,
+                    "from_district": 3695,
+                    "to_district": req.query.district_id
+                }
+            });
+
+            if (result.data.code === 200) {
+                const data = result.data.data;
+                if (data.length === 0) res.send("No service");
+                else res.send({
+                    "service_id": data[0].service_id,
+                    "service_type_id": data[0].service_type_id
+                });
+            } else {
+                res.status(500).send("Something went wrong! Please try again");
+            }
+        }
+    } catch (e) {
+        res.status(500).send(e);
+    }
+}
+
 module.exports = {
     addInformation,
     getAllInformations,
@@ -281,5 +315,6 @@ module.exports = {
     deleteInformation,
     getProvince,
     getDistrict,
-    getWard
+    getWard,
+    getService
 }
