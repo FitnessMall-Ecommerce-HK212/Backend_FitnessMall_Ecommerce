@@ -6,6 +6,9 @@ const momoConfig = require('../configure/momo');
 const { token, shop_id, client_id } = require('../configure/GHN');
 const { normalize } = require('../utils/string_utils');
 
+const CryptoJS = require('crypto-js'); // npm install crypto-js
+const moment = require('moment'); // npm install moment
+
 async function createGHNorder(props) {
     const { information } = props;
 
@@ -15,7 +18,7 @@ async function createGHNorder(props) {
     });
 
     const province_inform = province.data.filter(pro => normalize(pro.province_name) === normalize(information.province));
-    
+
     const district = await axios({
         method: 'GET',
         url: 'http://localhost:8080/api/infos/district',
@@ -25,7 +28,7 @@ async function createGHNorder(props) {
     });
 
     const district_inform = district.data.filter(dis => normalize(dis.district_name) === normalize(information.district));
-    
+
     const ward = await axios({
         method: 'GET',
         url: 'http://localhost:8080/api/infos/ward',
@@ -60,7 +63,7 @@ async function createGHNorder(props) {
         "payment_type_id": information.payment_type_id,
         "required_note": "KHONGCHOXEMHANG",
         "Items": [
-    
+
         ]
     }
 
@@ -78,7 +81,7 @@ async function createGHNorder(props) {
             ...body
         }
     });
-    
+
     if (result.data.code === 200) {
         return {
             message: result.data.code_message_value,
@@ -149,48 +152,90 @@ const zalopayPayment = async (req, res, next) => {
         key1: "8NdU5pG5R2spGHGhyO99HN1OhD8IQJBn",
         key2: "uUfsWgfLkRLzq6W2uNXTCxrfxs51auny",
         endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/createorder"
-      };
+    };
 
-    const zalopayRequest = new ZaloPayRequest({
-        amount: total_amount,
-        username: data.username,
-        orderId: zalopayOrderId,
-        extraData: extraData
+    var embeddata = {
+        amount: "'0'"
+    };
+
+    extraData.split(',').forEach(field => {
+        const arr_field = field.split('=');
+        embeddata = {
+            ...embeddata,
+            [arr_field[0]]: arr_field[1]
+        }
     });
 
-    const body = JSON.stringify(momoRequest);
-    const headers = {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Content-Length': Buffer.byteLength(body)
-    }
-    try {
-        const momo_res = await axios({
-            method: 'post',
-            url: momoConfig.connection.url,
-            data: body,
-            headers: headers
-        });
-        if (momo_res.data.resultCode === 0) {
-            res.send(momo_res.data.payUrl);
-        }
-    } catch (e) {
-        res.status(500).send(e.message);
-    }
+    embeddata.payment_type_id = 1;
+
+    const items = [];
+
+    const order_inform = {
+        appid: config.appid,
+        apptransid: `${moment().format('YYMMDD')}_${zalopayOrderId}`, // mã giao dich có định dạng yyMMdd_xxxx
+        appuser: data.information.receiver,
+        apptime: Date.now(), // miliseconds
+        item: JSON.stringify(items),
+        embeddata: JSON.stringify(embeddata),
+        amount: total_amount,
+        description: `Fitness Mall - Thanh toán cho đơn hàng #${zalopayOrderId}`,
+        bankcode: "zalopayapp",
+    };
+
+    const zalopay_data = config.appid + "|" + order_inform.apptransid + "|" + order_inform.appuser + "|" + order_inform.amount + "|" + order_inform.apptime + "|" + order_inform.embeddata + "|" + order_inform.item;
+    order_inform.mac = CryptoJS.HmacSHA256(zalopay_data, config.key1).toString();
+
+    axios.post(config.endpoint, null, { params: order_inform })
+        .then(result => {
+            res.send(result.data.orderurl);
+        })
+        .catch(err => console.log(err));
 }
 
 const paypalPayment = async (req, res, next) => {
-    
+
 }
 
 const cashPayment = async (req, res, next) => {
-    
+    try {
+        const orderId = req.body.order_id;
+        const extraData = req.body.extraData;
+
+        const orderSnapshot = await firestore.collection('orders').doc(orderId);
+        const order = await orderSnapshot.get();
+        const data = order.data();
+
+        const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
+        const total_amount = receiptSnapshot.data().total_amount;
+
+        var information = { amount: `'${total_amount}'` };
+        extraData.split(',').forEach(field => {
+            const arr_field = field.split('=');
+            information = {
+                ...information,
+                [arr_field[0]]: arr_field[1]
+            }
+        });
+
+        information.payment_type_id = 2;
+
+        const ship_details = await createGHNorder({ information });
+
+        await firestore.collection("receipts").doc(data.receiptID).update({
+            ship_details: ship_details
+        });
+
+        res.status(200).send("http://localhost:3000/");
+    } catch (e) {
+        res.status(500).send(e);
+    }
 }
 
 const checkPaymentMoMo = async (req, res, next) => {
     try {
         var information = { amount: "'0'" };
         const extraData = req.query.extraData;
-        
+
         const result_code = req.query.resultCode;
         const momoOrderID = req.query.orderId;
 
@@ -198,7 +243,7 @@ const checkPaymentMoMo = async (req, res, next) => {
             const arr_field = field.split('=');
             information = {
                 ...information,
-                [arr_field[0]] : arr_field[1]
+                [arr_field[0]]: arr_field[1]
             }
         });
 
@@ -230,7 +275,7 @@ const checkPaymentMoMo = async (req, res, next) => {
         await firestore.collection("orders").doc(orderid).update({
             state: result_code === "0" ? "Đã thanh toán" : "Đã hủy"
         })
-        res.status(200).send("Kiểm tra đơn hàng thành công");
+        res.redirect('http://localhost:3000/');
     } catch (e) {
         res.status(500).send(e);
     }

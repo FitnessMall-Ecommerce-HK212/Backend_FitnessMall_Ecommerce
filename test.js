@@ -24,16 +24,26 @@ const items = [{
 }];
 
 const order = {
-  appid: config.appid, 
-  apptransid: `${moment().format('YYMMDD')}_${uuid.v1()}`, // mã giao dich có định dạng yyMMdd_xxxx
-  appuser: "demo", 
-  apptime: Date.now(), // miliseconds
-  item: JSON.stringify(items), 
-  embeddata: JSON.stringify(embeddata), 
-  amount: 50000, 
-  description: "Fitness Mall - Thanh toán cho đơn hàng",
-  bankcode: "zalopayapp", 
-};
+  appid: '554',
+  apptransid: '220408_78577ec0-b741-11ec-83c5-1f5e32014c4c',
+  appuser: 'Nguyễn Khoa Gia Cát',
+  apptime: 1649425236811,
+  item: '[]',
+  embeddata: {
+    amount: "'0'",
+    orderID: 'HIXBwzAC7DcVrJQThscf',
+    phone: '0986723874',
+    receiver: 'Nguyễn Khoa Gia Cát',
+    province: 'Hồ Chí Minh',
+    district: 'Thành phố Thủ Đức',
+    ward: 'Phường Linh Trung',
+    address: 'Ký túc xá khu A',
+    payment_type_id: 1
+  },
+  amount: 116500,
+  description: 'Fitness Mall - Thanh toán cho đơn hàng #78577ec0-b741-11ec-83c5-1f5e32014c4c',
+  bankcode: 'zalopayapp'
+}
 
 console.log(order);
 
