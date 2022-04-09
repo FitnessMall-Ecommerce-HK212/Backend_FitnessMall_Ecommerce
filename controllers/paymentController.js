@@ -1,13 +1,23 @@
-const axios = require('axios');
-const firestore = require('../configure/firestore');
+'use strict';
 
-const MoMoRequest = require('../models/momoRequest');
+// Third Party
+const firestore = require('../configure/firestore');
 const momoConfig = require('../configure/momo');
 const { token, shop_id, client_id } = require('../configure/GHN');
-const { normalize } = require('../utils/string_utils');
+const { appId, key1, key2 } = require('../configure/zalopay');
+const { sandbox_account, paypal_client_id, secret, access_token } = require('../configure/paypal');
 
+// Modules
+const axios = require('axios');
 const CryptoJS = require('crypto-js'); // npm install crypto-js
 const moment = require('moment'); // npm install moment
+
+// Models
+const MoMoRequest = require('../models/momoRequest');
+const PaypalRequest = require('../models/paypalRequest');
+
+// Utils
+const { normalize } = require('../utils/string_utils');
 
 async function createGHNorder(props) {
     const { information } = props;
@@ -148,9 +158,9 @@ const zalopayPayment = async (req, res, next) => {
     const total_amount = receiptSnapshot.data().total_amount;
 
     const config = {
-        appid: "554",
-        key1: "8NdU5pG5R2spGHGhyO99HN1OhD8IQJBn",
-        key2: "uUfsWgfLkRLzq6W2uNXTCxrfxs51auny",
+        appid: appId,
+        key1: key1,
+        key2: key2,
         endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/createorder"
     };
 
@@ -193,7 +203,46 @@ const zalopayPayment = async (req, res, next) => {
 }
 
 const paypalPayment = async (req, res, next) => {
+    try {
+        const base = "https://api-m.sandbox.paypal.com";
+        const accessToken = await PaypalRequest.generateAccesstoken();
+        console.log(accessToken);
 
+        // const orderId = req.body.order_id;
+        // const paypalOrderId = req.body.paypalOrderID;
+        // const extraData = req.body.extraData;
+
+        // const orderSnapshot = await firestore.collection('orders').doc(orderId);
+        // const order = await orderSnapshot.get();
+        // const data = order.data();
+
+        // const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
+        // const total_amount = receiptSnapshot.data().total_amount;
+
+        const result = await axios({
+            method: 'POST',
+            url: `${base}/v2/checkout/orders`,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`
+            },
+            data: JSON.stringify({
+                intent: "CAPTURE",
+                purchase_units: [
+                    {
+                        amount: {
+                            currency_code: "USD",
+                            value: "100.00",
+                        },
+                    },
+                ],
+            })
+        });
+
+        console.log(result.data);
+    } catch (e) {
+        res.status(500).send(e);
+    }
 }
 
 const cashPayment = async (req, res, next) => {
