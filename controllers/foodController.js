@@ -64,9 +64,9 @@ const getAllFoods = async (req, res, next) => {
 
 const getFood = async (req, res, next) => {
     try {
-        if (req.params.foodID === undefined) res.send("Missing FoodID Value");
+        if (req.params.food_id === undefined) res.send("Missing FoodID Value");
         else {
-            const foodID = req.params.foodID;
+            const foodID = req.params.food_id;
             const foodRef = await firestore.collection("food").doc(foodID).get();
 
             if (!foodRef.exists) res.send("Food does not exist");
