@@ -94,7 +94,7 @@ const addOrder = async (req, res, next) => {
         else if (req.body.shipping_fee === undefined) res.send("Missing Shipping Fee Value");
         else if (req.body.discount_order === undefined) res.send("Missing discount order value");
         else if (req.body.discount_shipping === undefined) res.send("Missing discount shipping value");
-        else if (!['MOMO', 'ZALOPAY', 'PAYPAL', 'TIỀN MẶT'].includes(req.body.account)) res.send("Account Value doesn't match")
+        else if (!['MOMO', 'ZALOPAY', 'PAYPAL', 'CASH'].includes(req.body.account)) res.send("Account Value doesn't match")
         else {
             // Get data from request body
             const username = req.body.username;
@@ -129,7 +129,7 @@ const addOrder = async (req, res, next) => {
             // Create order - add information, products
             var docRef = await firestore.collection("orders").add({
                 "amount": amount,
-                "state": req.body.account === "TIỀN MẶT" ? "Thanh toán khi nhận hàng" : "Chưa thanh toán",
+                "state": req.body.account === "CASH" ? "Thanh toán khi nhận hàng" : "Chưa thanh toán",
                 "timestamp": timestamp,
                 "username": username,
                 "information": information_data,
@@ -144,7 +144,7 @@ const addOrder = async (req, res, next) => {
                 "total_amount": total_amount,
                 "timestamp": timestamp,
                 "username": username,
-                "state": req.body.account === "TIỀN MẶT" ? "Thanh toán khi nhận hàng" : "Chưa thanh toán",
+                "state": req.body.account === "CASH" ? "Thanh toán khi nhận hàng" : "Chưa thanh toán",
                 "vouchers": [],
                 "receipt_details": {
                     "order_amount": amount,
@@ -192,7 +192,7 @@ const addOrder = async (req, res, next) => {
                     case 'PAYPAL':
                         result = await axios.post('http://localhost:8080/api/paypal', { order_id: docRef.id, paypalOrderID: orderID, extraData: extraData });
                         break;
-                    case 'TIỀN MẶT':
+                    case 'CASH':
                         result = await axios.post('http://localhost:8080/api/cash', { order_id: docRef.id, extraData: extraData });
                         break;
                 }
