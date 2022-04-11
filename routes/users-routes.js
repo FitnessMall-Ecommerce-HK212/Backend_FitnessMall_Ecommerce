@@ -12,11 +12,11 @@ const { signUp,
 
 const router = express.Router();
 
-router.get('/user_author', author);
+router.get('/user_author/:sessionID', author);
 router.get('/user_signin', signIn);
-router.get('/user_signout', signOut);
+router.get('/user_signout/:sessionID', signOut);
 router.post('/user_signup', signUp);
-router.get('/user_session', getSession);
+router.get('/user_session/:sessionID', getSession);
 router.get('/users', getAllUsers);
 router.get('/user/:username', getUser);
 router.put('/user/:username/update', updateUser);
