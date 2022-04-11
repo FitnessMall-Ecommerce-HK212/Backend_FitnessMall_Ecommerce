@@ -6,6 +6,7 @@ const User = require('../models/users');
 
 const signIn = async (req, res, next) => {
     try {
+        console.log(req.sessionID);
         if (req.query.username === undefined) res.send('Missing username value');
         else if (req.query.password === undefined) res.send('Missing password value');
         else {
@@ -37,6 +38,7 @@ const signIn = async (req, res, next) => {
 }
 
 const getSession = async (req, res, next) => {
+    console.log(req.sessionID);
     res.send(req.session);
 }
 
@@ -48,7 +50,7 @@ const author = async (req, res, next) => {
 const signOut = async (req, res, next) => {
     req.session.destroy();
     res.send('Sign Out Successfully');
-    res.redirect('/');
+    // res.redirect('/');
 }
 
 const signUp = async (req, res, next) => {
