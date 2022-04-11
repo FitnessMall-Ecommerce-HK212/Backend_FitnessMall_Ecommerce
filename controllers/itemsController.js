@@ -106,25 +106,29 @@ const getAllItems = async (req, res, next) => {
 
 const getItem = async (req, res, next) => {
     try {
-        if (req.params.itemID === undefined) res.send("Missing ItemID Value");
+        if (req.params.itemCode === undefined) res.send("Missing Item Code Value");
         else {
-            const itemID = req.params.itemID;
-            const itemRef = await firestore.collection("items").doc(itemID).get();
+            const itemCode = req.params.itemCode;
+            const items = await firestore.collection("items").where("code", "==", itemCode).get();
 
-            if (!itemRef.exists) res.send("Item does not exist");
+            if (items.empty) res.send("Item does not exist");
             else {
-                const data = itemRef.data();
-                const item = new Item(
-                    itemRef.id,
-                    data.code,
-                    data.description,
-                    data.image,
-                    data.name,
-                    data.price,
-                    data.sold,
-                    [],
-                    []
-                );
+                var item;
+                items.forEach(doc => {
+                    const data = doc.data();
+                    item = new Item(
+                        doc.id,
+                        data.code,
+                        data.description,
+                        data.image,
+                        data.name,
+                        data.price,
+                        data.sold,
+                        [],
+                        []
+                    );
+                })
+                
                 var feedbacksArray = [];
                 const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
                 if (!feedbacks.empty) {

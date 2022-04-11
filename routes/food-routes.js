@@ -11,7 +11,7 @@ const router = express.Router();
 
 // router.post('/food', addFood);
 router.get('/foods', getAllFoods);
-router.get('/food/:food_id', getFood);
+router.get('/food/:foodCode', getFood);
 router.post('/food/feedback', addFoodFeedBack);
 // router.put('/food/:id', updateFood);
 // router.delete('/food/:id', deleteFood);
