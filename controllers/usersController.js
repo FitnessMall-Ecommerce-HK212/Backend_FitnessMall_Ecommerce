@@ -41,7 +41,7 @@ const getSession = async (req, res, next) => {
 }
 
 const author = async (req, res, next) => {
-    if (req.session.username === undefined) res.redirect('/');
+    if (req.session.username === undefined) res.send('Not author');
     else res.send('OK');
 }
 
