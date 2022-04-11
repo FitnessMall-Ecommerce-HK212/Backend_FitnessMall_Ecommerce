@@ -113,12 +113,13 @@ const getItemImage = async (req, res, next) => {
 
             if (items.empty) res.send("Item does not exist");
             else {
-                var image;
+                var image, name;
                 items.forEach(doc => {
                     const data = doc.data();
-                    image = data.image
+                    image = data.image;
+                    name = data.name;
                 });
-                res.send(image);
+                res.send({image: image, name: name});
             }
         }
     } catch (error) {

@@ -246,8 +246,8 @@ const getAllOrders = async (req, res, next) => {
                         });
 
                         if (result_item.data === "Item does not exist")
-                            product.image = result_food.data;
-                        else product.image = result_item.data;
+                            product.image_name = result_food.data;
+                        else product.image_name = result_item.data;
                     }
 
                 res.send(OrdersArray);

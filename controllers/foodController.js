@@ -71,12 +71,13 @@ const getFoodImage = async (req, res, next) => {
 
             if (foods.empty) res.send("Food does not exist");
             else {
-                var image;
+                var image, name;
                 foods.forEach(doc => {
                     const data = doc.data();
-                    image = data.image
+                    image = data.image;
+                    name = data.name;
                 });
-                res.send(image);
+                res.send({image: image, name: name});
             }
         }
     } catch (error) {
