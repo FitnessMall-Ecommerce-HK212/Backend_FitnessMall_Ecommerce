@@ -22,15 +22,17 @@ const getAllBlogs = async (req, res, next) => {
         const blogsArray = [];
         if (!data.empty) {
             data.forEach(doc => {
-                const blog = new Blog(
-                    doc.id,
-                    doc.data().content,
-                    doc.data().date,
-                    doc.data().image,
-                    null,
-                    doc.data().tags,
-                    doc.data().title,
-                    doc.data().writer
+                console.log(doc.id)
+                const blog = new Blog({
+                    idBlog : doc.id,
+                    content: doc.data().content,
+                    date: doc.data().date, 
+                    image: doc.data().image, 
+                    comment: [], 
+                    tags: doc.data().tags, 
+                    title: doc.data().title, 
+                    writer: doc.data().writer
+                }
                 );
                 blogsArray.push(blog);
             });
