@@ -104,6 +104,29 @@ const getAllItems = async (req, res, next) => {
     }
 }
 
+const getItemImage = async (req, res, next) => {
+    try {
+        if (req.params.itemCode === undefined) res.send("Missing Item Code Value");
+        else {
+            const itemCode = req.params.itemCode;
+            const items = await firestore.collection("items").where("code", "==", itemCode).get();
+
+            if (items.empty) res.send("Item does not exist");
+            else {
+                var image;
+                items.forEach(doc => {
+                    const data = doc.data();
+                    image = data.image
+                });
+                res.send(image);
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).send(error.message);
+    }
+}
+
 const getItem = async (req, res, next) => {
     try {
         if (req.params.itemCode === undefined) res.send("Missing Item Code Value");
@@ -206,5 +229,6 @@ module.exports = {
     getItem,
     updateItem,
     deleteItem,
-    addFeedBack
+    addFeedBack,
+    getItemImage
 }

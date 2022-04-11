@@ -62,6 +62,29 @@ const getAllFoods = async (req, res, next) => {
     }
 }
 
+const getFoodImage = async (req, res, next) => {
+    try {
+        if (req.params.foodCode === undefined) res.send("Missing Food Code Value");
+        else {
+            const foodCode = req.params.foodCode;
+            const foods = await firestore.collection("food").where("code", "==", foodCode).get();
+
+            if (foods.empty) res.send("Food does not exist");
+            else {
+                var image;
+                foods.forEach(doc => {
+                    const data = doc.data();
+                    image = data.image
+                });
+                res.send(image);
+            }
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).send(error.message);
+    }
+}
+
 const getFood = async (req, res, next) => {
     try {
         if (req.params.foodCode === undefined) res.send("Missing Food Code Value");
@@ -162,5 +185,6 @@ module.exports = {
     getFood,
     updateFood,
     deleteFood,
-    addFoodFeedBack
+    addFoodFeedBack,
+    getFoodImage
 }
