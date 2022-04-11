@@ -9,12 +9,14 @@ const momoPayment = async (req, res, next) => {
     const orderSnapshot = await firestore.collection('orders').doc(orderId);
     const order = await orderSnapshot.get();
     const data = order.data();
+
     const momoRequest = new MoMoRequest({
         amount: data.amount,
         username: data.username,
         orderId: orderId
     });
     const body = JSON.stringify(momoRequest);
+    console.log('REQUEST TO MOMO: '+body);
     const headers = {
         'Content-Type': 'application/json; charset=UTF-8',
         'Content-Length': Buffer.byteLength(body)
@@ -27,7 +29,9 @@ const momoPayment = async (req, res, next) => {
             headers: headers
         });
         if (momo_res.data.resultCode === 0){
+            console.log("MOMO'S RESPONSE: " + JSON.stringify(momo_res.data));
             res.redirect(momo_res.data.payUrl);
+            orderSnapshot.set({'state': 'Đã thanh toán'},  { merge: true })
         }
     }catch(e){
         console.log(e);

@@ -11,7 +11,7 @@ class MomoRequest {
         this.storeId = 'Fitness Mall';
         this.requestId = momo_utils.createRequestId(username);
         this.amount = amount;
-        this.orderId = orderId;
+        this.orderId = orderId + 'fitness_mall' +  Date.now();
         this.orderInfo = 'FITNESS';
         this.redirectUrl = momoConfig.redirectUrl;
         this.requestType = 'captureWallet';
