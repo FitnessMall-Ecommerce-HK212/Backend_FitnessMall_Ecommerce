@@ -84,6 +84,7 @@ const getAllItems = async (req, res, next) => {
                 const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
                 if (!feedbacks.empty) {
                     var feedbacksArray = [];
+                    var score=0;
                     feedbacks.forEach(feedback => {
                         const data = feedback.data();
                         feedbacksArray.push(new Feedback(
@@ -93,13 +94,39 @@ const getAllItems = async (req, res, next) => {
                             data.date,
                             data.point
                         ));
+                        score+=data.point;
                     });
                     item.feedback = feedbacksArray;
+                    item.point = score/length(feedbacksArray);
                 }
             }
             res.send(itemsArray);
         }
     } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const getItemImage = async (req, res, next) => {
+    try {
+        if (req.params.itemCode === undefined) res.send("Missing Item Code Value");
+        else {
+            const itemCode = req.params.itemCode;
+            const items = await firestore.collection("items").where("code", "==", itemCode).get();
+
+            if (items.empty) res.send("Item does not exist");
+            else {
+                var image, name;
+                items.forEach(doc => {
+                    const data = doc.data();
+                    image = data.image;
+                    name = data.name;
+                });
+                res.send({image: image, name: name});
+            }
+        }
+    } catch (error) {
+        console.log(error);
         res.status(400).send(error.message);
     }
 }
@@ -130,6 +157,7 @@ const getItem = async (req, res, next) => {
                 })
                 
                 var feedbacksArray = [];
+                var score=0;
                 const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
                 if (!feedbacks.empty) {
                     feedbacks.forEach(feedback => {
@@ -141,8 +169,10 @@ const getItem = async (req, res, next) => {
                             data.date,
                             data.point
                         ));
+                        score+=data.point;
                     });
                     item.feedback = feedbacksArray;
+                    item.point=score/length(feedbacksArray);
                 }
                 res.send(item);
             }
@@ -206,5 +236,6 @@ module.exports = {
     getItem,
     updateItem,
     deleteItem,
-    addFeedBack
+    addFeedBack,
+    getItemImage
 }

@@ -153,7 +153,7 @@ const addOrder = async (req, res, next) => {
                     "discount_shipping": discount_shipping
                 }
             });
-            
+
             // Add order type id to receipt
             switch (req.body.account) {
                 case 'MOMO':
@@ -161,7 +161,7 @@ const addOrder = async (req, res, next) => {
                         "momoOrderID": orderID,
                     });
                     break;
-                case 'ZALOPAY': 
+                case 'ZALOPAY':
                     await firestore.collection("receipts").doc(receiptRef.id).update({
                         "zalopayOrderID": orderID,
                     });
@@ -233,6 +233,23 @@ const getAllOrders = async (req, res, next) => {
                     );
                     OrdersArray.push(order);
                 });
+                for (const order of OrdersArray) 
+                    for (const product of order.products) {
+                        const result_item = await axios({
+                            method: 'GET',
+                            url: `http://localhost:8080/api/item/image/${product.code}`
+                        });
+
+                        const result_food = await axios({
+                            method: 'GET',
+                            url: `http://localhost:8080/api/food/image/${product.code}`
+                        });
+
+                        if (result_item.data === "Item does not exist")
+                            product.image_name = result_food.data;
+                        else product.image_name = result_item.data;
+                    }
+
                 res.send(OrdersArray);
             }
         }
@@ -265,6 +282,22 @@ const getOrder = async (req, res, next) => {
                     orders.data().products,
                     orders.data().information
                 );
+
+                for (const product of order.products) {
+                    const result_item = await axios({
+                        method: 'GET',
+                        url: `http://localhost:8080/api/item/image/${product.code}`
+                    });
+
+                    const result_food = await axios({
+                        method: 'GET',
+                        url: `http://localhost:8080/api/food/image/${product.code}`
+                    });
+
+                    if (result_item.data === "Item does not exist")
+                        product.image = result_food.data;
+                    else product.image = result_item.data;
+                }
 
                 res.send(order);
             }
@@ -312,7 +345,7 @@ const deleteOrder = async (req, res, next) => {
                     shop_id: shop_id
                 },
                 data: {
-                    "order_codes": [receipt.data().ship_details.shipID]   
+                    "order_codes": [receipt.data().ship_details.shipID]
                 }
             });
 
