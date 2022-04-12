@@ -4,41 +4,49 @@ const firestore = require('../configure/firestore');
 const firebase = require('firebase');
 const User = require('../models/users');
 
+const { google } = require('googleapis');
+const urlParse = require('url-parse');
+const queryParse = require('query-string');
+const axios = require('axios');
+
 const signIn = async (req, res, next) => {
     try {
         console.log(req.sessionID);
         if (req.query.username === undefined) res.send('Missing username value');
         else if (req.query.password === undefined) res.send('Missing password value');
         else {
-            const user = await firestore.collection('users')
-                .where('username', '==', req.query.username)
-                .get();
+            const session = await firestore.collection('session_data')
+                .where("session_id", "==", req.sessionID).get();
 
-            if (user.empty) res.send('Wrong information');
-            else {
-                var password, role, verified;
-                user.forEach(doc => {
-                    password = doc.data().password;
-                    role = doc.data().role;
-                    verified = doc.data().verified;
-                });
+            if (session.empty) {
+                const user = await firestore.collection('users')
+                    .where('username', '==', req.query.username)
+                    .get();
 
-                if (verified === false || verified === undefined) res.send("Account hasn't been verified yet");
-                else if (password !== req.query.password) res.send('Wrong information');
+                if (user.empty) res.send('Wrong information');
                 else {
-                    await firestore.collection("session_data").add({
-                        session_id: req.sessionID,
-                        session_data: {
-                            username: req.query.username,
-                            role: role
-                        },
-                        expired_date: +new Date() + 24 * 60 * 60 * 1000
-                    })
-                    // req.session.username = req.query.username;
-                    // req.session.role = role;
-                    res.send(req.sessionID);
+                    var password, role, verified;
+                    user.forEach(doc => {
+                        password = doc.data().password;
+                        role = doc.data().role;
+                        verified = doc.data().verified;
+                    });
+
+                    if (verified === false || verified === undefined) res.send("Account hasn't been verified yet");
+                    else if (password !== req.query.password) res.send('Wrong information');
+                    else {
+                        await firestore.collection("session_data").add({
+                            session_id: req.sessionID,
+                            session_data: {
+                                username: req.query.username,
+                                role: role
+                            },
+                            expired_date: +new Date() + 24 * 60 * 60 * 1000
+                        })
+                        res.send(req.sessionID);
+                    }
                 }
-            }
+            } else res.send("Please sign out before sign in again");
         }
     } catch (error) {
         res.status(400).send(error.message);
@@ -255,15 +263,103 @@ const updateUser = async (req, res, next) => {
     }
 }
 
-// const deleteUser = async (req, res, next) => {
-//     try {
-//         const id = req.params.id;
-//         await firestore.collection('Users').doc(id).delete();
-//         res.send('Record deleted successfuly');
-//     } catch (error) {
-//         res.status(400).send(error.message);
-//     }
-// }
+const userGoogle = async (req, res, next) => {
+    try {
+        const session = await firestore.collection('session_data')
+            .where("session_id", "==", req.sessionID).get();
+
+        if (session.empty) {
+            const oauth2Client = new google.auth.OAuth2(
+                // client id
+                "330742137381-i7453q3dod5ptf8c73drfsrcmoehg5qf.apps.googleusercontent.com",
+                // client secret
+                "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",
+                // redirect
+                "http://localhost:8080/api/user_signin_signup/google_return"
+            )
+
+            const scopes = ["https://www.googleapis.com/auth/userinfo.profile email openid"]
+
+            const url = oauth2Client.generateAuthUrl({
+                // 'online' (default) or 'offline' (gets refresh_token)
+                access_type: 'offline',
+                /** Pass in the scopes array defined above.
+                  * Alternatively, if only one scope is needed, you can pass a scope URL as a string */
+                scope: scopes,
+                // Enable incremental authorization. Recommended as a best practice.
+                include_granted_scopes: true
+            })
+
+            res.status(200).send(url);
+        } else res.send("Please sign out before sign in again");
+    } catch (e) {
+        req.status(500).send(e);
+    }
+}
+
+const userGoogleReturn = async (req, res, next) => {
+    const queryURL = new urlParse(req.url);
+    const code = queryParse.parse(queryURL.query).code;
+    const oauth2Client = new google.auth.OAuth2(
+        // client id
+        "330742137381-i7453q3dod5ptf8c73drfsrcmoehg5qf.apps.googleusercontent.com",
+        // client secret
+        "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",
+        // redirect
+        "http://localhost:8080/api/user_signin_signup/google_return"
+    )
+
+    const tokens = await oauth2Client.getToken(code);
+
+    let userInform;
+
+    try {
+        const result = await axios({
+            method: "GET",
+            headers: {
+                authorization: "Bearer " + tokens.tokens.access_token
+            },
+            "Content-Type": "application/json",
+            url: "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+        })
+        userInform = result.data;
+    } catch (e) {
+        console.log(e);
+    }
+
+    try {
+        const user = await firestore.collection('users')
+            .where('email', '==', userInform.email)
+            .get();
+
+        if (user.empty) {
+            await firestore.collection('users').add({
+                "avatar": userInform.picture,
+                "email": userInform.email,
+                "height": 0,
+                "weight": 0,
+                "name": userInform.name,
+                "role": "member",
+                "username": userInform.email,
+                "verified": true
+            });
+        }
+
+        await firestore.collection("session_data").add({
+            session_id: req.sessionID,
+            session_data: {
+                username: userInform.email,
+                role: "member"
+            },
+            expired_date: +new Date() + 24 * 60 * 60 * 1000
+        })
+
+        res.send(req.sessionID);
+
+    } catch (e) {
+        console.log(e);
+    }
+}
 
 module.exports = {
     signUp,
@@ -273,6 +369,7 @@ module.exports = {
     getAllUsers,
     getUser,
     updateUser,
-    author
-    // deleteUser
+    author,
+    userGoogle,
+    userGoogleReturn
 }

@@ -18,6 +18,7 @@ const paymentsRoutes = require('./routes/payment-routes');
 const receiptsRoutes = require('./routes/receipts-routes');
 const usersRoutes = require('./routes/users-routes');
 const verifiedRoutes = require('./routes/verified-routes');
+const googlefitRoutes = require('./routes/googlefit-routes');
 
 const routes = [
     blogsRoutes,
@@ -28,7 +29,8 @@ const routes = [
     usersRoutes,
     verifiedRoutes,
     paymentsRoutes,
-    receiptsRoutes
+    receiptsRoutes,
+    googlefitRoutes
 ];
 
 const app = express();

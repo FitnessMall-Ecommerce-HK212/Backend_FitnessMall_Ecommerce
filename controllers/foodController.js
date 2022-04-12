@@ -42,6 +42,7 @@ const getAllFoods = async (req, res, next) => {
                 .get();
                 if (!feedbacks.empty) {
                     var feedbacksArray = [];
+                    var score = 0;
                     feedbacks.forEach(feedback => {
                         const data = feedback.data();
                         feedbacksArray.push(new Feedback(
@@ -51,8 +52,10 @@ const getAllFoods = async (req, res, next) => {
                             data.date,
                             data.point
                         ));
+                        score += parseInt(data.point);
                     });
                     food.feedback = feedbacksArray;
+                    food.point = score/feedbacksArray.length;
                 }
             }
             res.send(foodsArray);
@@ -113,6 +116,7 @@ const getFood = async (req, res, next) => {
                 var feedbacksArray = [];
                 const feedbacks = await firestore.collection("food").doc(food.id).collection("feedback").get();
                 if (!feedbacks.empty) {
+                    var score = 0;
                     feedbacks.forEach(feedback => {
                         const data = feedback.data();
                         feedbacksArray.push(new Feedback(
@@ -122,8 +126,10 @@ const getFood = async (req, res, next) => {
                             data.date,
                             data.point
                         ));
+                        score += parseInt(data.point);
                     });
                     food.feedback = feedbacksArray;
+                    food.point = score/feedbacksArray.length;
                 }
                 res.send(food);
             }
