@@ -14,7 +14,7 @@ const getHotItems = async (req, res, next) => {
             const itemTypeList = [];
             const type = await firestore.collection('items').doc(value.id).collection('itemtype').get();
             type.forEach((doc) => {
-                // console.log(doc.data());
+                console.log(doc.data());
                 const itemType = new ItemType({
                     id: doc.id,
                     category: doc.data().category,
@@ -33,7 +33,7 @@ const getHotItems = async (req, res, next) => {
                     image: value.data().image,
                     name: value.data().name
                 }));
-            if (itemList.length == 10) {
+            if (itemList.length == 5) {
                 res.status(200).send({
                     hotItems: itemList
                 });
