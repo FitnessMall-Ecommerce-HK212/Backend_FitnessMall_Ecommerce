@@ -84,6 +84,7 @@ const getAllItems = async (req, res, next) => {
                 const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
                 if (!feedbacks.empty) {
                     var feedbacksArray = [];
+                    var score=0;
                     feedbacks.forEach(feedback => {
                         const data = feedback.data();
                         feedbacksArray.push(new Feedback(
@@ -93,8 +94,10 @@ const getAllItems = async (req, res, next) => {
                             data.date,
                             data.point
                         ));
+                        score+=data.point;
                     });
                     item.feedback = feedbacksArray;
+                    item.point = score/length(feedbacksArray);
                 }
             }
             res.send(itemsArray);
@@ -154,6 +157,7 @@ const getItem = async (req, res, next) => {
                 })
                 
                 var feedbacksArray = [];
+                var score=0;
                 const feedbacks = await firestore.collection("items").doc(item.id).collection("feedback").get();
                 if (!feedbacks.empty) {
                     feedbacks.forEach(feedback => {
@@ -165,8 +169,10 @@ const getItem = async (req, res, next) => {
                             data.date,
                             data.point
                         ));
+                        score+=data.point;
                     });
                     item.feedback = feedbacksArray;
+                    item.point=score/length(feedbacksArray);
                 }
                 res.send(item);
             }
