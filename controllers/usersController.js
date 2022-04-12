@@ -26,9 +26,17 @@ const signIn = async (req, res, next) => {
                 if (verified === false || verified === undefined) res.send("Account hasn't been verified yet");
                 else if (password !== req.query.password) res.send('Wrong information');
                 else {
-                    req.session.username = req.query.username;
-                    req.session.role = role;
-                    res.send('Sign in successfully');
+                    await firestore.collection("session_data").add({
+                        session_id: req.sessionID,
+                        session_data: {
+                            username: req.query.username,
+                            role: role
+                        },
+                        expired_date: +new Date() + 24 * 60 * 60 * 1000
+                    })
+                    // req.session.username = req.query.username;
+                    // req.session.role = role;
+                    res.send(req.sessionID);
                 }
             }
         }
@@ -38,19 +46,80 @@ const signIn = async (req, res, next) => {
 }
 
 const getSession = async (req, res, next) => {
-    console.log(req.sessionID);
-    res.send(req.session);
+    try {
+        if (req.params.sessionID === undefined) res.send("Missing Session ID Value")
+        else {
+            const sessions = await firestore.collection("session_data")
+                .where("session_id", "==", req.params.sessionID)
+                .get();
+
+            if (sessions.empty) {
+                res.send({ username: "", role: "" });
+            } else {
+                var id, session_data, expired_date;
+                sessions.forEach(doc => {
+                    id = doc.id;
+                    session_data = doc.data().session_data,
+                        expired_date = doc.data().expired_date
+                });
+
+
+                const currentDate = + new Date();
+                if (currentDate > expired_date) {
+                    await firestore.collection("session_data").doc(id).delete();
+                    res.send({ username: "", role: "" });
+                } else {
+                    await firestore.collection("session_data").doc(id).update({
+                        expired_date: currentDate
+                    });
+                    res.send(session_data);
+                }
+            }
+        }
+    } catch (e) {
+        res.status(500).send(e);
+    }
 }
 
 const author = async (req, res, next) => {
-    if (req.session.username === undefined) res.send("Not Author");
-    else res.send('OK');
+    try {
+        if (req.params.sessionID === undefined) res.send("Missing Session ID Value")
+        else {
+            const sessions = await firestore.collection("session_data")
+                .where("session_id", "==", req.params.sessionID)
+                .get();
+
+            if (sessions.empty) {
+                res.send("Not Author");
+            } else {
+                res.send("OK");
+            }
+        }
+    } catch (e) {
+        res.status(500).send(e);
+    }
 }
 
 const signOut = async (req, res, next) => {
-    req.session.destroy();
-    res.send('Sign Out Successfully');
-    // res.redirect('/');
+    if (req.params.sessionID === undefined) res.send("Missing Session ID Value");
+    else {
+        req.session.destroy();
+        const sessions = await firestore.collection("session_data")
+            .where("session_id", "==", req.params.sessionID)
+            .get();
+
+        if (sessions.empty) {
+            res.send('Sign Out Successfully');
+        } else {
+            var id;
+            sessions.forEach(doc => {
+                id = doc.id;
+            });
+            await firestore.collection("session_data").doc(id).delete();
+            res.send('Sign Out Successfully');
+        }
+
+    }
 }
 
 const signUp = async (req, res, next) => {
