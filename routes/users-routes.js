@@ -7,21 +7,29 @@ const { signUp,
   getAllUsers,
   getUser,
   updateUser,
-  // deleteUser
+  userGoogle,
+  userGoogleReturn
 } = require('../controllers/usersController');
 
 const router = express.Router();
 
+// SESSION
 router.get('/user_author/:sessionID', author);
-router.get('/user_signin', signIn);
-router.get('/user_signout/:sessionID', signOut);
-router.post('/user_signup', signUp);
 router.get('/user_session/:sessionID', getSession);
+
+// NORMAL SIGN IN - SIGN UP
+router.get('/user_signin', signIn);
+router.post('/user_signup', signUp);
+router.get('/user_signout/:sessionID', signOut);
+
+// GOOGLE SIGN IN - SIGN UP
+router.get('/user_signin_signup/google', userGoogle);
+router.get('/user_signin_signup/google_return', userGoogleReturn);
+
+// USER INFORMATION
 router.get('/users', getAllUsers);
 router.get('/user/:username', getUser);
 router.put('/user/:username/update', updateUser);
-// router.delete('/user/:username', deleteUser);
-
 
 module.exports = {
   routes: router
