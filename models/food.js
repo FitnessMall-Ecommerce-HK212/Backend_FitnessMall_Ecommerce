@@ -1,11 +1,12 @@
 class Food {
-    constructor(id, code, description, image, name, price, feedback = []) {
+    constructor(id, code, description, image, itemtype, name, point, feedback) {
         this.id = id;
         this.code = code;
         this.description = description;
+        this.itemtype = itemtype;
         this.image = image;
         this.name = name;
-        this.price = price;
+        this.point = point;
         this.feedback = feedback;
     }
 }

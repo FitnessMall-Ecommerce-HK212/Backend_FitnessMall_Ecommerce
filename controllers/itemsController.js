@@ -23,16 +23,20 @@ const getHotItems = async (req, res, next) => {
                 });
                 itemTypeList.push(itemType);
             })
-            itemList.push(
-                new Item({
-                    id: value.id,
-                    code: value.data().code,
-                    description: value.data().description,
-                    itemtype: itemTypeList,
-                    feedback: null,
-                    image: value.data().image,
-                    name: value.data().name
-                }));
+            const item = new Item(
+                value.id,
+                value.data().code,
+                value.data().description,
+                value.data().image,
+                value.data().name,
+                null,
+                null,
+                itemTypeList,
+                []
+            );
+
+            itemList.push(item);
+
             if (itemList.length == 5) {
                 res.status(200).send({
                     hotItems: itemList
@@ -174,6 +178,22 @@ const getItem = async (req, res, next) => {
                     item.feedback = feedbacksArray;
                     item.point = score/feedbacksArray.length;
                 }
+
+                var itemTypesArray = [];
+                const itemtypes = await firestore.collection("items").doc(item.id).collection("itemtype").get();
+                if (!itemtypes.empty) {
+                    itemtypes.forEach(itemtype => {
+                        const data = itemtype.data();
+                        itemTypesArray.push(new ItemType({
+                            id: itemtype.id,
+                            category: data.category,
+                            price: data.price,
+                            quantity: data.quantity
+                        }));
+                    });
+                    item.itemtype = itemTypesArray;
+                }
+
                 res.send(item);
             }
         }

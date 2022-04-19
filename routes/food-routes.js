@@ -5,12 +5,14 @@ const { addFood,
     getFood,
     updateFood,
     deleteFood,
-    getFoodImage
+    getFoodImage,
+    getHotFoods
 } = require('../controllers/foodController');
 
 const router = express.Router();
 
 // router.post('/food', addFood);
+router.get('/foods/hot', getHotFoods);
 router.get('/foods', getAllFoods);
 router.get('/food/:foodCode', getFood);
 router.get('/food/image/:foodCode', getFoodImage);
