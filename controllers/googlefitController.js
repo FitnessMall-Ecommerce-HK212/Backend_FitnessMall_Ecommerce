@@ -213,6 +213,7 @@ const getUserGoogleFitData = async (req, res, next) => {
     }
 }
 
+// {username, data} POST
 const createGoogleFitData = async (req, res, next) => {
     try {
         if (req.body.username === undefined) res.send("Missing Username Value")
