@@ -22,7 +22,9 @@ const signIn = async (req, res, next) => {
                     .where('username', '==', req.query.username)
                     .get();
 
-                if (user.empty) res.send('Wrong information');
+                if (user.empty){
+                    res.send('Wrong information');
+                } 
                 else {
                     var password, role, verified;
                     user.forEach(doc => {
@@ -32,7 +34,10 @@ const signIn = async (req, res, next) => {
                     });
 
                     if (verified === false || verified === undefined) res.send("Account hasn't been verified yet");
-                    else if (password !== req.query.password) res.send('Wrong information');
+                    else if (password !== req.query.password)
+                     {
+                        res.send('Wrong information');
+                     }
                     else {
                         await firestore.collection("session_data").add({
                             session_id: req.sessionID,
@@ -352,8 +357,10 @@ const userGoogleReturn = async (req, res, next) => {
             },
             expired_date: +new Date() + 24 * 60 * 60 * 1000
         })
-
-        res.send(req.sessionID);
+        // res.send(`<script> chrome.storage.set('sessionID', '${req.sessionID.toString()}') </script>`)
+        res.redirect(`http://localhost:3000/fake/${req.sessionID}`)
+        // res.send(`<script> window.close() </script>`)
+        // res.send(req.sessionID);
 
     } catch (e) {
         console.log(e);
