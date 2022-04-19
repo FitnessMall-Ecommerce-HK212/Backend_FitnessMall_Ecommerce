@@ -221,7 +221,7 @@ const getHotFoods = async (req, res, next) => {
                 itemTypeList.push(itemType);
             })
             const feedbacksArray = [];
-            var  score = 0;
+            var score = 0;
             const feedbacks = await firestore.collection('food').doc(value.id).collection('feedback').get();
             if (!feedbacks.empty) {
                 feedbacks.forEach(feedback => {
@@ -245,7 +245,7 @@ const getHotFoods = async (req, res, next) => {
                     value.data().image,
                     itemTypeList,
                     value.data().name,
-                    score,
+                    score/feedbacksArray.length,
                     feedbacksArray
                 ));
             
