@@ -191,11 +191,11 @@ const getGoogleFitDataReturn = async (req, res, next) => {
 
 const getUserGoogleFitData = async (req, res, next) => {
     try {
-        if (req.params.username === undefined) res.send("Missing Username Value") 
+        if (req.params.username === undefined) res.send("Missing Username Value")
         else {
             const user = await firestore.collection("google_fit_data")
-            .where("username", "==", req.params.username)
-            .get();
+                .where("username", "==", req.params.username)
+                .get();
 
             if (user.empty) res.send("Not Found Data");
             else {
@@ -213,8 +213,40 @@ const getUserGoogleFitData = async (req, res, next) => {
     }
 }
 
+const createGoogleFitData = async (req, res, next) => {
+    try {
+        if (req.body.username === undefined) res.send("Missing Username Value")
+        else {
+            const user = await firestore.collection("google_fit_data")
+                .where("username", "==", req.body.username)
+                .get();
+
+            if (user.empty) {
+                await firestore.collection("google_fit_data").add({
+                    username: req.body.username,
+                    data: req.body.data
+                });
+            }
+            else {
+                var id;
+                user.forEach(doc => {id = doc.id;});
+
+                await firestore.collection("google_fit_data").doc(id).update({
+                    username: req.body.username,
+                    data: req.body.data
+                });
+            }
+
+            res.send('<script> window.close() </script>');
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 module.exports = {
     getGoogleFitData,
     getGoogleFitDataReturn,
-    getUserGoogleFitData
+    getUserGoogleFitData,
+    createGoogleFitData
 }
