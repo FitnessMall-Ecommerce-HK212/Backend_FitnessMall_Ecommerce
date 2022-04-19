@@ -11,7 +11,6 @@ const axios = require('axios');
 
 const signIn = async (req, res, next) => {
     try {
-        console.log(req.sessionID);
         if (req.query.username === undefined) res.send('Missing username value');
         else if (req.query.password === undefined) res.send('Missing password value');
         else {
@@ -23,7 +22,9 @@ const signIn = async (req, res, next) => {
                     .where('username', '==', req.query.username)
                     .get();
 
-                if (user.empty) res.send('Wrong information');
+                if (user.empty){
+                    res.send('Wrong information');
+                } 
                 else {
                     var password, role, verified;
                     user.forEach(doc => {
@@ -33,7 +34,10 @@ const signIn = async (req, res, next) => {
                     });
 
                     if (verified === false || verified === undefined) res.send("Account hasn't been verified yet");
-                    else if (password !== req.query.password) res.send('Wrong information');
+                    else if (password !== req.query.password)
+                     {
+                        res.send('Wrong information');
+                     }
                     else {
                         await firestore.collection("session_data").add({
                             session_id: req.sessionID,
