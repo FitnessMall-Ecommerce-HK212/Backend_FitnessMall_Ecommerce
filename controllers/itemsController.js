@@ -178,6 +178,22 @@ const getItem = async (req, res, next) => {
                     item.feedback = feedbacksArray;
                     item.point = score/feedbacksArray.length;
                 }
+
+                var itemTypesArray = [];
+                const itemtypes = await firestore.collection("items").doc(item.id).collection("itemtype").get();
+                if (!itemtypes.empty) {
+                    itemtypes.forEach(itemtype => {
+                        const data = itemtype.data();
+                        itemTypesArray.push(new ItemType({
+                            id: itemtype.id,
+                            category: data.category,
+                            price: data.price,
+                            quantity: data.quantity
+                        }));
+                    });
+                    item.itemtype = itemTypesArray;
+                }
+
                 res.send(item);
             }
         }

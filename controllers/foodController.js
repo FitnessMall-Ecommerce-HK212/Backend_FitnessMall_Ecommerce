@@ -29,8 +29,9 @@ const getAllFoods = async (req, res, next) => {
                     data.code,
                     data.description,
                     data.image,
+                    [],
                     data.name,
-                    data.price,
+                    0,
                     []
                 ))
             });
@@ -106,9 +107,9 @@ const getFood = async (req, res, next) => {
                         data.code,
                         data.description,
                         data.image,
-                        data.name,
-                        data.price,
                         [],
+                        data.name,
+                        0,
                         []
                     );
                 })
@@ -131,6 +132,22 @@ const getFood = async (req, res, next) => {
                     food.feedback = feedbacksArray;
                     food.point = score / feedbacksArray.length;
                 }
+
+                var itemTypesArray = [];
+                const itemtypes = await firestore.collection("food").doc(food.id).collection("itemtype").get();
+                if (!itemtypes.empty) {
+                    itemtypes.forEach(itemtype => {
+                        const data = itemtype.data();
+                        itemTypesArray.push(new ItemType({
+                            id: itemtype.id,
+                            category: data.category,
+                            price: data.price,
+                            quantity: data.quantity
+                        }));
+                    });
+                    food.itemtype = itemTypesArray;
+                }
+
                 res.send(food);
             }
         }
