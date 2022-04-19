@@ -182,11 +182,20 @@ const getGoogleFitDataReturn = async (req, res, next) => {
         console.log(e);
     }
 
-    res.status(200).send({
-        step: stepValues,
-        calo: caloValues,
-        distance: distanceValues
-    })
+    const data = {
+        data:{
+            step: stepValues,
+            calo: caloValues,
+            distance: distanceValues
+        }
+    }
+    
+    res.redirect(`http://localhost:3000/real/${JSON.stringify(data)}`)
+    // res.status(200).send({
+    //     step: stepValues,
+    //     calo: caloValues,
+    //     distance: distanceValues
+    // })
 }
 
 const getUserGoogleFitData = async (req, res, next) => {
@@ -215,6 +224,7 @@ const getUserGoogleFitData = async (req, res, next) => {
 
 const createGoogleFitData = async (req, res, next) => {
     try {
+        console.log(req.body)
         if (req.body.username === undefined) res.send("Missing Username Value")
         else {
             const user = await firestore.collection("google_fit_data")
