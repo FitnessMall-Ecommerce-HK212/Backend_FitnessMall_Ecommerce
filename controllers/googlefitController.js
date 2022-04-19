@@ -199,9 +199,13 @@ const getUserGoogleFitData = async (req, res, next) => {
 
             if (user.empty) res.send("Not Found Data");
             else {
-                var data;
-                user.forEach(doc => data = doc.data());
-                res.send(data);
+                var id;
+                user.forEach(doc => {
+                    id = doc.id
+                })
+
+                const snapshot = await firestore.collection("google_fit_data").doc(id);
+                res.send(snapshot);
             }
         }
     } catch (e) {

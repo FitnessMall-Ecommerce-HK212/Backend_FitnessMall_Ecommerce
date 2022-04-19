@@ -3,7 +3,7 @@
 const firestore = require('../configure/firestore');
 const Food = require('../models/food');
 const Feedback = require('../models/feedback');
-
+const ItemType = require('../models/itemtype');
 const addFood = async (req, res, next) => {
     try {
         const data = req.body;
@@ -37,9 +37,9 @@ const getAllFoods = async (req, res, next) => {
 
             for (const food of foodsArray) {
                 const feedbacks = await firestore.collection("food")
-                .doc(food.id)
-                .collection("feedback")
-                .get();
+                    .doc(food.id)
+                    .collection("feedback")
+                    .get();
                 if (!feedbacks.empty) {
                     var feedbacksArray = [];
                     var score = 0;
@@ -55,7 +55,7 @@ const getAllFoods = async (req, res, next) => {
                         score += parseInt(data.point);
                     });
                     food.feedback = feedbacksArray;
-                    food.point = score/feedbacksArray.length;
+                    food.point = score / feedbacksArray.length;
                 }
             }
             res.send(foodsArray);
@@ -80,7 +80,7 @@ const getFoodImage = async (req, res, next) => {
                     image = data.image;
                     name = data.name;
                 });
-                res.send({image: image, name: name});
+                res.send({ image: image, name: name });
             }
         }
     } catch (error) {
@@ -112,7 +112,7 @@ const getFood = async (req, res, next) => {
                         []
                     );
                 })
-                
+
                 var feedbacksArray = [];
                 const feedbacks = await firestore.collection("food").doc(food.id).collection("feedback").get();
                 if (!feedbacks.empty) {
@@ -129,7 +129,7 @@ const getFood = async (req, res, next) => {
                         score += parseInt(data.point);
                     });
                     food.feedback = feedbacksArray;
-                    food.point = score/feedbacksArray.length;
+                    food.point = score / feedbacksArray.length;
                 }
                 res.send(food);
             }
@@ -186,6 +186,66 @@ const addFoodFeedBack = async (req, res, next) => {
     }
 }
 
+const getHotFoods = async (req, res, next) => {
+    try {
+        const foods = await firestore.collection('food').orderBy('description', 'desc').limit(10).get();
+        
+        const foodList = [];
+        await foods.forEach(async (value) => {
+            const itemTypeList = [];
+            const type = await firestore.collection('food').doc(value.id).collection('itemtype').get();
+            type.forEach((doc) => {
+                const itemType = new ItemType({
+                    id: doc.id,
+                    category: doc.data().category,
+                    price: doc.data().price,
+                    quantity: doc.data().quantity
+                });
+                itemTypeList.push(itemType);
+            })
+            const feedbacksArray = [];
+            var  score = 0;
+            const feedbacks = await firestore.collection('food').doc(value.id).collection('feedback').get();
+            if (!feedbacks.empty) {
+                feedbacks.forEach(feedback => {
+                    const data = feedback.data();
+                    feedbacksArray.push(new Feedback(
+                        feedback.id,
+                        data.username,
+                        data.content,
+                        data.date,
+                        data.point
+                    ));
+                    score += parseInt(data.point);
+                });
+            }
+
+            foodList.push(
+                new Food(
+                    value.id,
+                    value.data().code,
+                    value.data().description,
+                    value.data().image,
+                    itemTypeList,
+                    value.data().name,
+                    score,
+                    feedbacksArray
+                ));
+            
+            if (foodList.length == 5) {
+                res.status(200).send({
+                    hotFoods: foodList
+                });
+            }
+        })
+
+    } catch (e) {
+        res.status(500).send(e);
+        // console.log(e);
+    }
+
+}
+
 module.exports = {
     addFood,
     getAllFoods,
@@ -193,5 +253,6 @@ module.exports = {
     updateFood,
     deleteFood,
     addFoodFeedBack,
-    getFoodImage
+    getFoodImage,
+    getHotFoods
 }

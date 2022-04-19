@@ -77,7 +77,7 @@ const getSession = async (req, res, next) => {
                     res.send({ username: "", role: "" });
                 } else {
                     await firestore.collection("session_data").doc(id).update({
-                        expired_date: currentDate
+                        expired_date: currentDate + 24 * 60 * 60 * 1000
                     });
                     res.send(session_data);
                 }

@@ -23,16 +23,20 @@ const getHotItems = async (req, res, next) => {
                 });
                 itemTypeList.push(itemType);
             })
-            itemList.push(
-                new Item({
-                    id: value.id,
-                    code: value.data().code,
-                    description: value.data().description,
-                    itemtype: itemTypeList,
-                    feedback: null,
-                    image: value.data().image,
-                    name: value.data().name
-                }));
+            const item = new Item(
+                value.id,
+                value.data().code,
+                value.data().description,
+                value.data().image,
+                value.data().name,
+                null,
+                null,
+                itemTypeList,
+                []
+            );
+
+            itemList.push(item);
+
             if (itemList.length == 5) {
                 res.status(200).send({
                     hotItems: itemList
