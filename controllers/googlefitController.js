@@ -183,11 +183,9 @@ const getGoogleFitDataReturn = async (req, res, next) => {
     }
 
     const data = {
-        data:{
             step: stepValues,
             calo: caloValues,
             distance: distanceValues
-        }
     }
     
     res.redirect(`http://localhost:3000/real/${JSON.stringify(data)}`)
