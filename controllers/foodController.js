@@ -32,7 +32,8 @@ const getAllFoods = async (req, res, next) => {
                     [],
                     data.name,
                     0,
-                    []
+                    [],
+                    data.price,
                 ))
             });
 
