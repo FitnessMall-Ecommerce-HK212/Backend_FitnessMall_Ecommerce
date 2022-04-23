@@ -8,7 +8,7 @@ const {
 const router = express.Router();
 
 // router.post('/blog', addBlog);
-router.post('/add-cmt', addComment);
+router.post('/blog/add-cmt', addComment);
 router.get('/blogs/:id', getBlog);
 router.get('/blogs', getAllBlogs);
 
