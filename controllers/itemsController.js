@@ -11,8 +11,10 @@ const getHotItems = async (req, res, next) => {
         // console.log(items);
         const itemList = [];
         await items.forEach(async (value) => {
+            let point = 0;
             const itemTypeList = [];
             const type = await firestore.collection('items').doc(value.id).collection('itemtype').get();
+            const feedbacks = await firestore.collection('items').doc(value.id).collection('feedback').get();
             type.forEach((doc) => {
                 console.log(doc.data());
                 const itemType = new ItemType({
@@ -23,6 +25,10 @@ const getHotItems = async (req, res, next) => {
                 });
                 itemTypeList.push(itemType);
             })
+            feedbacks.forEach((e)=>{
+                point += parseInt(e.data().point);
+            })
+            point = (point / feedbacks.size).toFixed(2);
             const item = new Item(
                 value.id,
                 value.data().code,
@@ -32,7 +38,7 @@ const getHotItems = async (req, res, next) => {
                 null,
                 null,
                 itemTypeList,
-                []
+                [], point
             );
 
             itemList.push(item);
