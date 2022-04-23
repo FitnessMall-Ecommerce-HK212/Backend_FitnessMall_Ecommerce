@@ -28,7 +28,7 @@ const getHotItems = async (req, res, next) => {
             feedbacks.forEach((e)=>{
                 point += parseInt(e.data().point);
             })
-            point = (point / feedbacks.size).toFixed(2);
+            point = point / feedbacks.size;
             const item = new Item(
                 value.id,
                 value.data().code,
