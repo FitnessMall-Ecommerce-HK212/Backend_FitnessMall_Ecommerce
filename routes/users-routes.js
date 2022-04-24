@@ -5,7 +5,7 @@ const { signUp,
   signOut,
   getSession,
   getAllUsers,
-  getUser,
+  getUser,getVertify,
   updateUser,
   userGoogle,
   userGoogleReturn
@@ -27,6 +27,7 @@ router.get('/user_signin_signup/google', userGoogle);
 router.get('/user_signin_signup/google_return', userGoogleReturn);
 
 // USER INFORMATION
+router.post('/users/:username/vertify', getVertify);
 router.get('/users', getAllUsers);
 router.get('/user/:username', getUser);
 router.put('/user/:username/update', updateUser);

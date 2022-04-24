@@ -11,8 +11,8 @@ const axios = require('axios');
 
 const signIn = async (req, res, next) => {
     try {
-        if (req.query.username === undefined) res.send('Missing username value');
-        else if (req.query.password === undefined) res.send('Missing password value');
+        if (req.query.username === undefined || req.query.username === '' ) res.send('Missing username value');
+        else if (req.query.password === undefined || req.query.password === '') res.send('Missing password value');
         else {
             const session = await firestore.collection('session_data')
                 .where("session_id", "==", req.sessionID).get();
@@ -136,10 +136,9 @@ const signOut = async (req, res, next) => {
 
 const signUp = async (req, res, next) => {
     try {
-        if (req.body.username === undefined) res.send('Missing username value');
-        else if (req.body.password === undefined) res.send('Missing password value');
-        else if (req.body.name === undefined) res.send('Missing name value');
-        else if (req.body.email === undefined) res.send('Missing email value');
+        if (req.body.username === undefined|| req.body.username === '') res.send('Missing username value');
+        else if (req.body.password === undefined|| req.body.password === '') res.send('Missing password value');
+        else if (req.body.email === undefined || req.body.email === '') res.send('Missing email value');
         else {
             const user = await firestore.collection('users')
                 .where("username", "==", req.body.username)
@@ -182,6 +181,29 @@ const getAllUsers = async (req, res, next) => {
             });
             res.send(UsersArray);
         }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const getVertify = async (req, res, next) => {
+    try {
+        const username = req.params.username;
+        const Users = await firestore.collection('users').where('username', "==", username).get();
+        // console.log(Users)
+        if (Users.empty) {
+            res.status(404).send('User with the given username not found');
+        } else {
+            const user = []
+            Users.forEach(doc => {
+                const data = doc.data();
+                user.push(
+                    data.verified,
+                )
+            })
+            res.send(user[0]);
+        }
+
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -374,6 +396,7 @@ module.exports = {
     signOut,
     getAllUsers,
     getUser,
+    getVertify,
     updateUser,
     author,
     userGoogle,
