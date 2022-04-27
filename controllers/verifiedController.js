@@ -138,7 +138,29 @@ const verifiedEmail = async (req, res, next) => {
         res.status(400).send(error.message);
     }
 }
+const changeUserPass = async (req, res, next) => {
+    try {
+        if (req.body.username === undefined || req.body.username ==='') res.send('Missing username value');
+        else {
+            const user = await firestore.collection('users')
+                .where("username", "==", req.body.username)
+                .get();
 
+            var id, password;
+
+            user.forEach((doc) => {
+                id = doc.id;
+                password = doc.data().password;
+            });
+
+            await firestore.collection('users').doc(id).update(req.body);
+            res.send('Update password successfully');
+            
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
 const sendEmailChangePassword = async (req, res, next) => {
     try {
         if (req.params.username === undefined) res.send("Missing Username Value");
@@ -158,6 +180,10 @@ const sendEmailChangePassword = async (req, res, next) => {
                         data.name,
                         data.avatar,
                         data.role,
+                        data.date,
+                        data.nation,
+                        data.sex,
+                        data.phone,
                         data.height,
                         data.weiht,
                         data.email
@@ -214,7 +240,7 @@ const getCode = async (req, res, next) => {
 
 module.exports = {
     sendEmailVerifed,
-    verifiedEmail,
+    verifiedEmail,changeUserPass,
     sendEmailChangePassword,
     getCode
 }
