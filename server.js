@@ -5,8 +5,10 @@ const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
 
 const cors = require('cors');
+const app = express();
 const bodyParser = require('body-parser');
-
+app.use(bodyParser.json({limit: "100mb"}));
+app.use(bodyParser.urlencoded({limit: "100mb", extended: true, parameterLimit:100000}));
 const config = require('./configure/config');
 
 const blogsRoutes = require('./routes/blogs-routes');
@@ -33,7 +35,7 @@ const routes = [
     googlefitRoutes
 ];
 
-const app = express();
+
 
 const oneDay = 1000 * 60 * 60 * 24;
 
@@ -48,7 +50,7 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static(__dirname));
 app.use(cookieParser());
 

@@ -174,6 +174,10 @@ const getAllUsers = async (req, res, next) => {
                     doc.data().name,
                     doc.data().avatar,
                     doc.data().role,
+                    doc.data().date,
+                    doc.data().nation,
+                    doc.data().sex,
+                    doc.data().phone,
                     doc.data().height,
                     doc.data().weight
                 );
@@ -213,7 +217,7 @@ const getUser = async (req, res, next) => {
     try {
         const username = req.params.username;
         const Users = await firestore.collection('users').where('username', "==", username).get();
-
+        // console.log(Users[0])
         if (Users.empty) {
             res.status(404).send('User with the given username not found');
         } else {
@@ -227,6 +231,10 @@ const getUser = async (req, res, next) => {
                     data.name,
                     data.avatar,
                     data.role,
+                    data.date,
+                    data.nation,
+                    data.sex,
+                    data.phone,
                     data.height,
                     data.weight,
                     data.email
@@ -365,6 +373,10 @@ const userGoogleReturn = async (req, res, next) => {
                 "height": 0,
                 "weight": 0,
                 "name": userInform.name,
+                "date":{"day":'',"month":'',"year":''},
+                "nation":'',
+                "sex":'',
+                "phone":'',
                 "role": "member",
                 "username": userInform.email,
                 "verified": true
