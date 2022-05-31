@@ -15,7 +15,7 @@ const getGoogleFitData = async (req, res, next) => {
             // client secret
             "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",
             // redirect
-            "http://localhost:8080/api/google_fit_return"
+            "https://fitnessmall.herokuapp.com/api/google_fit_return"
         )
         const scopes = ["https://www.googleapis.com/auth/fitness.activity.read",
             "https://www.googleapis.com/auth/fitness.location.read",
@@ -48,7 +48,7 @@ const getGoogleFitDataReturn = async (req, res, next) => {
         // client secret
         "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",
         // redirect
-        "http://localhost:8080/api/google_fit_return"
+        "https://fitnessmall.herokuapp.com/api/google_fit_return"
     )
 
     const tokens = await oauth2Client.getToken(code);
@@ -188,7 +188,7 @@ const getGoogleFitDataReturn = async (req, res, next) => {
             distance: distanceValues
     }
     
-    res.redirect(`http://localhost:3000/real/${JSON.stringify(data)}`)
+    res.redirect(`https://fitnessmall.netlify.app/real/${JSON.stringify(data)}`)
     // res.status(200).send({
     //     step: stepValues,
     //     calo: caloValues,
@@ -211,8 +211,8 @@ const getUserGoogleFitData = async (req, res, next) => {
                     id = doc.id
                 })
 
-                const snapshot = await firestore.collection("google_fit_data").doc(id);
-                res.send(snapshot);
+                const snapshot = await firestore.collection("google_fit_data").doc(id).get();
+                res.send(snapshot.data());
             }
         }
     } catch (e) {

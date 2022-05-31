@@ -24,7 +24,7 @@ module.exports = {
     access_key: 'sUt5iGdZZvToGm8p',
     secret_key: '3rQb08iEYuidDOt3HpVtoESkrDUIjFKf',
     url: 'https://test-payment.momo.vn',
-    redirectUrl: 'http://localhost:8080/api/momo/check_payment',
+    redirectUrl: 'https://fitnessmall.herokuapp.com/api/momo/check_payment',
     ipnUrl: 'https://callback.url/notify',
     m4b_account: {
         username: 'ecomm_hcmut',

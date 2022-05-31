@@ -309,7 +309,7 @@ const userGoogle = async (req, res, next) => {
                 // client secret
                 "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",
                 // redirect
-                "http://localhost:8080/api/user_signin_signup/google_return"
+                "https://fitnessmall.herokuapp.com/api/user_signin_signup/google_return"
             )
 
             const scopes = ["https://www.googleapis.com/auth/userinfo.profile email openid"]
@@ -340,7 +340,7 @@ const userGoogleReturn = async (req, res, next) => {
         // client secret
         "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",
         // redirect
-        "http://localhost:8080/api/user_signin_signup/google_return"
+        "https://fitnessmall.herokuapp.com/api/user_signin_signup/google_return"
     )
 
     const tokens = await oauth2Client.getToken(code);
@@ -392,7 +392,7 @@ const userGoogleReturn = async (req, res, next) => {
             expired_date: +new Date() + 24 * 60 * 60 * 1000
         })
         // res.send(`<script> chrome.storage.set('sessionID', '${req.sessionID.toString()}') </script>`)
-        res.redirect(`http://localhost:3000/fake/${req.sessionID}`)
+        res.redirect(`https://fitnessmall.netlify.app/fake/${req.sessionID}`)
         // res.send(`<script> window.close() </script>`)
         // res.send(req.sessionID);
 

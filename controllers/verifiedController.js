@@ -70,15 +70,15 @@ const sendEmailVerifed = async (req, res, next) => {
                         id = doc.id;
                     });
 
-                    verifiedLink = `http://localhost:8080/api/verify_email?token=`;
+                    verifiedLink = `https://fitnessmall.herokuapp.com/api/verify_email?token=`;
                     from = 'Email Verification';
-                    subject = `Verify your email for Fitness Mall`;
-                    html = `<p> Hello ${displayName}, </p>
-                            <p> Follow this link to verify your email address. </p>
+                    subject = `Xác thực email cho Fitness Mall`;
+                    html = `<p> Xin chào ${displayName}, </p>
+                            <p> Nhấn vào liên kết này để xác thực email của bạn. </p>
                             <p> <a href="${verifiedLink + token}"> ${verifiedLink + token} </a> </p>
-                            <p> If you didn't ask to verify this address, you can ignore this email. </p>
-                            <p> Thanks, </p>
-                            <p> Your Fitness Mall team </p>`;
+                            <p> Nếu bạn không yêu cầu xác thực, bạn có thể bỏ qua email này. </p>
+                            <p> Trân trọng, </p>
+                            <p> Đội ngũ Fitness Mall </p>`;
 
                     var sent = sendEmail(from, subject, html, email, token, displayName);
                     if (sent != '0') {
@@ -199,14 +199,14 @@ const sendEmailChangePassword = async (req, res, next) => {
                 var from, subject, html, email;
 
                 from = 'Password Reset';
-                subject = `Reset your account for Fitness Mall`;
+                subject = `Đặt lại mật khẩu cho Fitness Mall`;
                 email = userInform.email;
-                html = `<p> Hello ${userInform.name}, </p>
-                            <p> Enter this code to reset your Fitness Mall password for your ${email} account. </p>
-                            <p> Your password reset code is ${verifiedCode} </p>
-                            <p> If you didn't ask to reset your password, you can ignore this email. </p>
-                            <p> Thanks, </p>
-                            <p> Your Fitness Mall team </p>`;
+                html = `<p> Xin chào ${userInform.name}, </p>
+                            <p> Nhập mã dưới đây để đặt lại mật khẩu Fitness Mall cho tài khoản ${email} của bạn. </p>
+                            <p> Mã để đặt lại mật khẩu là ${verifiedCode}. </p>
+                            <p> Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. </p>
+                            <p> Trân trọng, </p>
+                            <p> Đội ngũ Fitness </p>`;
 
                 var sent = sendEmail(from, subject, html, email);
                 if (sent != '0') {
@@ -242,5 +242,6 @@ module.exports = {
     sendEmailVerifed,
     verifiedEmail,changeUserPass,
     sendEmailChangePassword,
-    getCode
+    getCode,
+    sendEmail
 }

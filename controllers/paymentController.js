@@ -6,7 +6,7 @@ const momoConfig = require('../configure/momo');
 const { token, shop_id, client_id } = require('../configure/GHN');
 const { appId, key1, key2 } = require('../configure/zalopay');
 const { sandbox_account, paypal_client_id, secret, access_token } = require('../configure/paypal');
-
+const sendEmail = require('./verifiedController').sendEmail;
 // Modules
 const axios = require('axios');
 const CryptoJS = require('crypto-js'); // npm install crypto-js
@@ -19,19 +19,52 @@ const PaypalRequest = require('../models/paypalRequest');
 // Utils
 const { normalize } = require('../utils/string_utils');
 
+function createOrderSuccessNotify(props) {
+    const {email, orderId, productList, username} = props
+
+    emailTemplate = `<h5>Chào ${username}</h5>
+    <div>Fitness mall đã nhận được yêu cần đặt hàng của bạn</div>
+    <div>Đơn hàng của bạn gồm:</div>
+    <table>
+        <tr>
+            <th>Tên sản phẩm</th>
+            <th>Đơn giá</th>
+            <th>Số lượng</th>
+            <th>Thành tiền</th>
+        </tr>
+    `;
+    
+    productList.forEach((item)=>{
+        const itemTemplate = `
+        <tr>
+            <td>${item.name}</td>
+            <td>${item.unit_price}</td>
+            <td>${item.quantity}</td>
+            <td>${item.unit_price * item.quantity}</td>
+        </tr>
+        `;
+        emailTemplate += itemTemplate;
+    });
+
+    emailTemplate += '</table>';
+    console.log('[INFO] Email template:' + emailTemplate);
+    sendEmail('fitness-maill@gmail.com', 'Xác nhận đặt hàng thành công', emailTemplate, email);
+    console.log('[INFO] Send email notification successfully');
+}
+
 async function createGHNorder(props) {
     const { information } = props;
 
     const province = await axios({
         method: 'GET',
-        url: 'http://localhost:8080/api/infos/province'
+        url: 'https://fitnessmall.herokuapp.com/api/infos/province'
     });
 
     const province_inform = province.data.filter(pro => normalize(pro.province_name) === normalize(information.province));
 
     const district = await axios({
         method: 'GET',
-        url: 'http://localhost:8080/api/infos/district',
+        url: 'https://fitnessmall.herokuapp.com/api/infos/district',
         params: {
             province_id: province_inform[0].province_id
         }
@@ -41,7 +74,7 @@ async function createGHNorder(props) {
 
     const ward = await axios({
         method: 'GET',
-        url: 'http://localhost:8080/api/infos/ward',
+        url: 'https://fitnessmall.herokuapp.com/api/infos/ward',
         params: {
             district_id: district_inform[0].district_id
         }
@@ -51,7 +84,7 @@ async function createGHNorder(props) {
 
     const service_inform = await axios({
         method: 'GET',
-        url: 'http://localhost:8080/api/infos/service',
+        url: 'https://fitnessmall.herokuapp.com/api/infos/service',
         params: {
             district_id: district_inform[0].district_id
         }
@@ -274,7 +307,28 @@ const cashPayment = async (req, res, next) => {
             ship_details: ship_details
         });
 
-        res.status(200).send("http://localhost:3000/");
+        var orderid, username, order_details;
+        order.forEach(doc => {
+            orderid = doc.id;
+            username = doc.data().username;
+            order_details = doc.data().products
+        })
+
+        const user = await firestore.collection("users").where("username", "==", username).get();
+        var email;
+
+        user.forEach(doc => {
+            email = doc.data().email;
+        })
+
+        createOrderSuccessNotify({
+            username: username,
+            email: email,
+            orderId: orderid,
+            productList: order_details
+        })
+
+        res.status(200).send("https://fitnessmall.netlify.app/");
     } catch (e) {
         res.status(500).send(e);
     }
@@ -316,15 +370,31 @@ const checkPaymentMoMo = async (req, res, next) => {
 
         const order = await firestore.collection("orders").where("receiptID", "==", id).get();
 
-        var orderid;
+        var orderid, username, order_details;
         order.forEach(doc => {
             orderid = doc.id;
+            username = doc.data().username;
+            order_details = doc.data().products
+        })
+
+        const user = await firestore.collection("users").where("username", "==", username).get();
+        var email;
+
+        user.forEach(doc => {
+            email = doc.data().email;
+        })
+
+        createOrderSuccessNotify({
+            username: username,
+            email: email,
+            orderId: orderid,
+            productList: order_details
         })
 
         await firestore.collection("orders").doc(orderid).update({
             state: result_code === "0" ? "Đã thanh toán" : "Đã hủy"
         })
-        res.redirect('http://localhost:3000/');
+        res.redirect('https://fitnessmall.netlify.app/');
     } catch (e) {
         res.status(500).send(e);
     }
