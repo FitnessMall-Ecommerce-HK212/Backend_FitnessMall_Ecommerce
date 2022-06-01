@@ -280,11 +280,14 @@ const paypalPayment = async (req, res, next) => {
 
 const cashPayment = async (req, res, next) => {
     try {
+
         const orderId = req.body.order_id;
+
+        console.log(orderId);
+
         const extraData = req.body.extraData;
 
-        const orderSnapshot = await firestore.collection('orders').doc(orderId);
-        const order = await orderSnapshot.get();
+        const order = await firestore.collection('orders').doc(orderId).get();
         const data = order.data();
 
         const receiptSnapshot = await firestore.collection("receipts").doc(data.receiptID).get();
@@ -308,11 +311,9 @@ const cashPayment = async (req, res, next) => {
         });
         
         var orderid, username, order_details;
-        order.forEach(doc => {
-            orderid = doc.id;
-            username = doc.data().username;
-            order_details = doc.data().products
-        })
+        orderid = orderId;
+        username = order.data().username;
+        order_details = order.data().products
 
         const user = await firestore.collection("users").where("username", "==", username).get();
         var email;
@@ -328,9 +329,9 @@ const cashPayment = async (req, res, next) => {
             productList: order_details
         })
 
-        res.status(200).send(`${process.env.FRONTEND_URL}`);
+        res.send(`<script> window.location.href = "${process.env.FRONTEND_URL}"</script>`);
     } catch (e) {
-        res.status(500).send(e);
+        console.log(e.message);
     }
 }
 
