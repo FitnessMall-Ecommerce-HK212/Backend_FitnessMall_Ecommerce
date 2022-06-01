@@ -20,9 +20,9 @@ const PaypalRequest = require('../models/paypalRequest');
 const { normalize } = require('../utils/string_utils');
 
 function createOrderSuccessNotify(props) {
-    const {email, orderId, productList, username} = props
+    const { email, orderId, productList, username } = props
 
-    emailTemplate = `<h5>Chào ${username}</h5>
+    var emailTemplate = `<h5>Chào ${username}</h5>
     <div>Fitness mall đã nhận được yêu cần đặt hàng của bạn</div>
     <div>Đơn hàng của bạn gồm:</div>
     <table>
@@ -33,8 +33,8 @@ function createOrderSuccessNotify(props) {
             <th>Thành tiền</th>
         </tr>
     `;
-    
-    productList.forEach((item)=>{
+
+    productList.forEach((item) => {
         const itemTemplate = `
         <tr>
             <td>${item.name}</td>
@@ -47,9 +47,9 @@ function createOrderSuccessNotify(props) {
     });
 
     emailTemplate += '</table>';
-    console.log('[INFO] Email template:' + emailTemplate);
+    // console.log('[INFO] Email template:' + emailTemplate);
     sendEmail('fitness-maill@gmail.com', 'Xác nhận đặt hàng thành công', emailTemplate, email);
-    console.log('[INFO] Send email notification successfully');
+    // console.log('[INFO] Send email notification successfully');
 }
 
 async function createGHNorder(props) {
@@ -57,14 +57,14 @@ async function createGHNorder(props) {
 
     const province = await axios({
         method: 'GET',
-        url: 'https://fitnessmall.herokuapp.com/api/infos/province'
+        url: `${process.env.HOST_URL}api/infos/province`
     });
 
     const province_inform = province.data.filter(pro => normalize(pro.province_name) === normalize(information.province));
 
     const district = await axios({
         method: 'GET',
-        url: 'https://fitnessmall.herokuapp.com/api/infos/district',
+        url: `${process.env.HOST_URL}api/infos/district`,
         params: {
             province_id: province_inform[0].province_id
         }
@@ -74,7 +74,7 @@ async function createGHNorder(props) {
 
     const ward = await axios({
         method: 'GET',
-        url: 'https://fitnessmall.herokuapp.com/api/infos/ward',
+        url: `${process.env.HOST_URL}api/infos/ward`,
         params: {
             district_id: district_inform[0].district_id
         }
@@ -84,7 +84,7 @@ async function createGHNorder(props) {
 
     const service_inform = await axios({
         method: 'GET',
-        url: 'https://fitnessmall.herokuapp.com/api/infos/service',
+        url: `${process.env.HOST_URL}api/infos/service`,
         params: {
             district_id: district_inform[0].district_id
         }
@@ -110,7 +110,7 @@ async function createGHNorder(props) {
         ]
     }
 
-    // console.log(body);
+    console.log(body);
 
     const result = await axios({
         method: "POST",
@@ -306,7 +306,7 @@ const cashPayment = async (req, res, next) => {
         await firestore.collection("receipts").doc(data.receiptID).update({
             ship_details: ship_details
         });
-
+        
         var orderid, username, order_details;
         order.forEach(doc => {
             orderid = doc.id;
@@ -328,7 +328,7 @@ const cashPayment = async (req, res, next) => {
             productList: order_details
         })
 
-        res.status(200).send("https://fitnessmall.netlify.app/");
+        res.status(200).send(`${process.env.FRONTEND_URL}`);
     } catch (e) {
         res.status(500).send(e);
     }
@@ -354,6 +354,7 @@ const checkPaymentMoMo = async (req, res, next) => {
 
         var ship_details = {};
 
+        console.log(information);
         result_code === "0" ? ship_details = await createGHNorder({ information }) : 0;
 
         const receipt = await firestore.collection("receipts").where("momoOrderID", "==", momoOrderID).get();
@@ -370,33 +371,36 @@ const checkPaymentMoMo = async (req, res, next) => {
 
         const order = await firestore.collection("orders").where("receiptID", "==", id).get();
 
-        var orderid, username, order_details;
-        order.forEach(doc => {
-            orderid = doc.id;
-            username = doc.data().username;
-            order_details = doc.data().products
-        })
+        if (result_code === "0") {
+            var orderid, username, order_details;
+            order.forEach(doc => {
+                orderid = doc.id;
+                username = doc.data().username;
+                order_details = doc.data().products
+            })
 
-        const user = await firestore.collection("users").where("username", "==", username).get();
-        var email;
+            const user = await firestore.collection("users").where("username", "==", username).get();
+            var email;
 
-        user.forEach(doc => {
-            email = doc.data().email;
-        })
+            user.forEach(doc => {
+                email = doc.data().email;
+            })
 
-        createOrderSuccessNotify({
-            username: username,
-            email: email,
-            orderId: orderid,
-            productList: order_details
-        })
+            createOrderSuccessNotify({
+                username: username,
+                email: email,
+                orderId: orderid,
+                productList: order_details
+            })
+        }
 
         await firestore.collection("orders").doc(orderid).update({
             state: result_code === "0" ? "Đã thanh toán" : "Đã hủy"
         })
-        res.redirect('https://fitnessmall.netlify.app/');
+
+        res.send(`<script> window.location.href = "${process.env.FRONTEND_URL}"</script>`);
     } catch (e) {
-        res.status(500).send(e);
+        console.log(e.message);
     }
 }
 

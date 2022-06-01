@@ -70,7 +70,7 @@ const sendEmailVerifed = async (req, res, next) => {
                         id = doc.id;
                     });
 
-                    verifiedLink = `https://fitnessmall.herokuapp.com/api/verify_email?token=`;
+                    verifiedLink = `${process.env.HOST_URL}api/verify_email?token=`;
                     from = 'Email Verification';
                     subject = `Xác thực email cho Fitness Mall`;
                     html = `<p> Xin chào ${displayName}, </p>

@@ -36,7 +36,6 @@ const routes = [
 ];
 
 
-
 const oneDay = 1000 * 60 * 60 * 24;
 
 app.use(sessions({
@@ -55,5 +54,5 @@ app.use(express.static(__dirname));
 app.use(cookieParser());
 
 routes.forEach(route => { app.use('/api', route.routes) });
-
+console.log(process.env.FRONTEND_URL)
 app.listen(config.port, () => console.log('App is listening on url http://localhost:' + config.port));

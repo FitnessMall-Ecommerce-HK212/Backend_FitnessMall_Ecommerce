@@ -40,6 +40,56 @@ const addInformation = async (req, res, next) => {
     }
 }
 
+const getAllInformations_Session = async (req, res, next) => {
+    try {
+        if (req.params.sessionID === undefined) res.send('Missing sessionID value');
+        else {
+            const sessionData = await firestore.collection("session_data").where("session_id", "==", req.params.sessionID).get();
+
+            var username;
+
+            sessionData.forEach(doc => {
+                username = doc.data().session_data.username;
+            })
+
+        
+
+            const Informations = await firestore.collection('users')
+                .where('username', "==", username)
+                .get();
+
+            var id;
+
+            Informations.forEach(doc => {
+                id = doc.id;
+            });
+
+            const data = await firestore.collection('users').doc(id).collection('informations').get();
+            const InformationsArray = [];
+
+            if (data.empty) {
+                res.status(404).send('No Information record found');
+            } else {
+                data.forEach(doc => {
+                    const information = new Information(
+                        doc.id,
+                        doc.data().province,
+                        doc.data().district,
+                        doc.data().ward,
+                        doc.data().address,
+                        doc.data().phone,
+                        doc.data().receiver
+                    );
+                    InformationsArray.push(information);
+                });
+                res.send(InformationsArray);
+            }
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 const getAllInformations = async (req, res, next) => {
     try {
         if (req.params.username === undefined) res.send('Missing username value');
@@ -310,6 +360,7 @@ const getService = async (req, res, next) => {
 module.exports = {
     addInformation,
     getAllInformations,
+    getAllInformations_Session,
     getInformation,
     updateInformation,
     deleteInformation,

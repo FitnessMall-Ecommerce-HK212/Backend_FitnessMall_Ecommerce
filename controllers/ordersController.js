@@ -17,14 +17,14 @@ const getShippingFee = async (req, res, next) => {
         else {
             const province = await axios({
                 method: 'GET',
-                url: 'https://fitnessmall.herokuapp.com/api/infos/province'
+                url: `${process.env.HOST_URL}api/infos/province`
             });
 
             const province_inform = province.data.filter(pro => normalize(pro.province_name) === normalize(req.query.province));
 
             const district = await axios({
                 method: 'GET',
-                url: 'https://fitnessmall.herokuapp.com/api/infos/district',
+                url: `${process.env.HOST_URL}api/infos/district`,
                 params: {
                     province_id: province_inform[0].province_id
                 }
@@ -34,7 +34,7 @@ const getShippingFee = async (req, res, next) => {
 
             const ward = await axios({
                 method: 'GET',
-                url: 'https://fitnessmall.herokuapp.com/api/infos/ward',
+                url: `${process.env.HOST_URL}api/infos/ward`,
                 params: {
                     district_id: district_inform[0].district_id
                 }
@@ -44,7 +44,7 @@ const getShippingFee = async (req, res, next) => {
 
             const service_inform = await axios({
                 method: 'GET',
-                url: 'https://fitnessmall.herokuapp.com/api/infos/service',
+                url: `${process.env.HOST_URL}api/infos/service`,
                 params: {
                     district_id: district_inform[0].district_id
                 }
@@ -184,16 +184,16 @@ const addOrder = async (req, res, next) => {
                 var result;
                 switch (req.body.account) {
                     case 'MOMO':
-                        result = await axios.post('https://fitnessmall.herokuapp.com/api/momo', { order_id: docRef.id, momoOrderID: orderID, extraData: extraData });
+                        result = await axios.post(`${process.env.HOST_URL}api/momo`, { order_id: docRef.id, momoOrderID: orderID, extraData: extraData });
                         break;
                     case 'ZALOPAY':
-                        result = await axios.post('https://fitnessmall.herokuapp.com/api/zalopay', { order_id: docRef.id, zalopayOrderID: orderID, extraData: extraData });
+                        result = await axios.post(`${process.env.HOST_URL}api/zalopay`, { order_id: docRef.id, zalopayOrderID: orderID, extraData: extraData });
                         break;
                     case 'PAYPAL':
-                        result = await axios.post('https://fitnessmall.herokuapp.com/api/paypal', { order_id: docRef.id, paypalOrderID: orderID, extraData: extraData });
+                        result = await axios.post(`${process.env.HOST_URL}api/paypal`, { order_id: docRef.id, paypalOrderID: orderID, extraData: extraData });
                         break;
                     case 'CASH':
-                        result = await axios.post('https://fitnessmall.herokuapp.com/api/cash', { order_id: docRef.id, extraData: extraData });
+                        result = await axios.post(`${process.env.HOST_URL}api/cash`, { order_id: docRef.id, extraData: extraData });
                         break;
                 }
                 res.send(result.data);
@@ -237,12 +237,12 @@ const getAllOrders = async (req, res, next) => {
                     for (const product of order.products) {
                         const result_item = await axios({
                             method: 'GET',
-                            url: `https://fitnessmall.herokuapp.com/api/item/image/${product.code}`
+                            url: `${process.env.HOST_URL}api/item/image/${product.code}`
                         });
 
                         const result_food = await axios({
                             method: 'GET',
-                            url: `https://fitnessmall.herokuapp.com/api/food/image/${product.code}`
+                            url: `${process.env.HOST_URL}api/food/image/${product.code}`
                         });
 
                         if (result_item.data === "Item does not exist")
@@ -286,12 +286,12 @@ const getOrder = async (req, res, next) => {
                 for (const product of order.products) {
                     const result_item = await axios({
                         method: 'GET',
-                        url: `https://fitnessmall.herokuapp.com/api/item/image/${product.code}`
+                        url: `${process.env.HOST_URL}api/item/image/${product.code}`
                     });
 
                     const result_food = await axios({
                         method: 'GET',
-                        url: `https://fitnessmall.herokuapp.com/api/food/image/${product.code}`
+                        url: `${process.env.HOST_URL}api/food/image/${product.code}`
                     });
 
                     if (result_item.data === "Item does not exist")

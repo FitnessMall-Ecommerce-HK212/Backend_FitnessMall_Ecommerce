@@ -309,7 +309,7 @@ const userGoogle = async (req, res, next) => {
                 // client secret
                 "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",
                 // redirect
-                "https://fitnessmall.herokuapp.com/api/user_signin_signup/google_return"
+                `${process.env.HOST_URL}api/user_signin_signup/google_return`
             )
 
             const scopes = ["https://www.googleapis.com/auth/userinfo.profile email openid"]
@@ -340,7 +340,7 @@ const userGoogleReturn = async (req, res, next) => {
         // client secret
         "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",
         // redirect
-        "https://fitnessmall.herokuapp.com/api/user_signin_signup/google_return"
+        `${process.env.HOST_URL}api/user_signin_signup/google_return`
     )
 
     const tokens = await oauth2Client.getToken(code);
@@ -383,16 +383,34 @@ const userGoogleReturn = async (req, res, next) => {
             });
         }
 
-        await firestore.collection("session_data").add({
-            session_id: req.sessionID,
-            session_data: {
-                username: userInform.email,
-                role: "member"
-            },
-            expired_date: +new Date() + 24 * 60 * 60 * 1000
-        })
+        if (user.empty) {
+            await firestore.collection("session_data").add({
+                session_id: req.sessionID,
+                session_data: {
+                    username: userInform.email,
+                    role: "member"
+                },
+                expired_date: +new Date() + 24 * 60 * 60 * 1000
+            })
+        }
+        else {
+            var username;
+
+            user.forEach(doc => {
+                username = doc.data().username
+            })
+
+            await firestore.collection("session_data").add({
+                session_id: req.sessionID,
+                session_data: {
+                    username: username,
+                    role: "member"
+                },
+                expired_date: +new Date() + 24 * 60 * 60 * 1000
+            })
+        }
         // res.send(`<script> chrome.storage.set('sessionID', '${req.sessionID.toString()}') </script>`)
-        res.redirect(`https://fitnessmall.netlify.app/fake/${req.sessionID}`)
+        res.redirect(`${process.env.FRONTEND_URL}fake/${req.sessionID}`)
         // res.send(`<script> window.close() </script>`)
         // res.send(req.sessionID);
 
