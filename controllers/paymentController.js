@@ -399,7 +399,7 @@ const checkPaymentMoMo = async (req, res, next) => {
             state: result_code === "0" ? "Đã thanh toán" : "Đã hủy"
         })
 
-        res.send(`<script> window.location.href = "${process.env.FRONTEND_URL}"</script>`);
+        res.send(process.env.FRONTEND_URL);
     } catch (e) {
         console.log(e.message);
     }
