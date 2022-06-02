@@ -371,14 +371,15 @@ const checkPaymentMoMo = async (req, res, next) => {
         })
 
         const order = await firestore.collection("orders").where("receiptID", "==", id).get();
-
+        
+        var orderid, username, order_details;
+        order.forEach(doc => {
+            orderid = doc.id;
+            username = doc.data().username;
+            order_details = doc.data().products
+        })
+        
         if (result_code === "0") {
-            var orderid, username, order_details;
-            order.forEach(doc => {
-                orderid = doc.id;
-                username = doc.data().username;
-                order_details = doc.data().products
-            })
 
             const user = await firestore.collection("users").where("username", "==", username).get();
             var email;
