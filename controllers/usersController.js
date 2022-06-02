@@ -24,7 +24,7 @@ const signIn = async (req, res, next) => {
                     .get();
 
                 if (user.empty){
-                    res.send('Wrong information');
+                    res.send('Sai thông tin tài khoản');
                 } 
                 else {
                     var password, role, verified;
@@ -34,10 +34,10 @@ const signIn = async (req, res, next) => {
                         verified = doc.data().verified;
                     });
 
-                    if (verified === false || verified === undefined) res.send("Account hasn't been verified yet");
+                    if (verified === false || verified === undefined) res.send("Vui lòng xác thực tài khoản để tiếp tục");
                     else if (password !== req.query.password)
                      {
-                        res.send('Wrong information');
+                        res.send('Sai thông tin tài khoản');
                      }
                     else {
                         var sessionID = uuid.v1();
@@ -49,7 +49,7 @@ const signIn = async (req, res, next) => {
                             },
                             expired_date: +new Date() + 24 * 60 * 60 * 1000
                         })
-                        res.send(sessionID);
+                        res.send({sessionID: sessionID});
                     }
                 }
             } else res.send("Please sign out before sign in again");
