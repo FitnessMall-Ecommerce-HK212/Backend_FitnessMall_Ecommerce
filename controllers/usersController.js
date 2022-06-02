@@ -8,6 +8,7 @@ const { google } = require('googleapis');
 const urlParse = require('url-parse');
 const queryParse = require('query-string');
 const axios = require('axios');
+const uuid = require('uuid')
 
 const signIn = async (req, res, next) => {
     try {
@@ -39,15 +40,16 @@ const signIn = async (req, res, next) => {
                         res.send('Wrong information');
                      }
                     else {
+                        var sessionID = uuid.v1();
                         await firestore.collection("session_data").add({
-                            session_id: req.sessionID,
+                            session_id: sessionID,
                             session_data: {
                                 username: req.query.username,
                                 role: role
                             },
                             expired_date: +new Date() + 24 * 60 * 60 * 1000
                         })
-                        res.send(req.sessionID);
+                        res.send(sessionID);
                     }
                 }
             } else res.send("Please sign out before sign in again");
@@ -72,7 +74,7 @@ const getSession = async (req, res, next) => {
                 sessions.forEach(doc => {
                     id = doc.id;
                     session_data = doc.data().session_data,
-                        expired_date = doc.data().expired_date
+                    expired_date = doc.data().expired_date
                 });
 
 
@@ -115,7 +117,6 @@ const author = async (req, res, next) => {
 const signOut = async (req, res, next) => {
     if (req.params.sessionID === undefined) res.send("Missing Session ID Value");
     else {
-        req.session.destroy();
         const sessions = await firestore.collection("session_data")
             .where("session_id", "==", req.params.sessionID)
             .get();
@@ -382,10 +383,10 @@ const userGoogleReturn = async (req, res, next) => {
                 "verified": true
             });
         }
-
+        var sessionID = uuid.v1();
         if (user.empty) {
             await firestore.collection("session_data").add({
-                session_id: req.sessionID,
+                session_id: sessionID,
                 session_data: {
                     username: userInform.email,
                     role: "member"
@@ -401,7 +402,7 @@ const userGoogleReturn = async (req, res, next) => {
             })
 
             await firestore.collection("session_data").add({
-                session_id: req.sessionID,
+                session_id: sessionID,
                 session_data: {
                     username: username,
                     role: "member"
@@ -410,7 +411,7 @@ const userGoogleReturn = async (req, res, next) => {
             })
         }
         // res.send(`<script> chrome.storage.set('sessionID', '${req.sessionID.toString()}') </script>`)
-        res.redirect(`${process.env.FRONTEND_URL}fake/${req.sessionID}`)
+        res.redirect(`${process.env.FRONTEND_URL}fake/${sessionID}`)
         // res.send(`<script> window.close() </script>`)
         // res.send(req.sessionID);
 
