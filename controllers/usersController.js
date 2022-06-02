@@ -12,8 +12,8 @@ const uuid = require('uuid')
 
 const signIn = async (req, res, next) => {
     try {
-        if (req.query.username === undefined || req.query.username === '' ) res.send('Missing username value');
-        else if (req.query.password === undefined || req.query.password === '') res.send('Missing password value');
+        if (req.query.username === undefined || req.query.username === '' ) res.send('Không được để trống tài khoản');
+        else if (req.query.password === undefined || req.query.password === '') res.send('Không được để trống mật khẩu');
         else {
             const session = await firestore.collection('session_data')
                 .where("session_id", "==", req.sessionID).get();
