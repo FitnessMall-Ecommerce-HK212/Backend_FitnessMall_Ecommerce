@@ -39,8 +39,8 @@ const signIn = async (req, res, next) => {
                     if (verified === false || verified === undefined) {
                         await axios({
                             method: "POST",
-                            url: "http://localhost:8080/api/send_email",
-                            // url: `${process.env.HOST_URL}api/send_email`,
+                            // url: "http://localhost:8080/api/send_email",
+                            url: `${process.env.HOST_URL}api/send_email`,
                             data: {
                                 email: email
                             }
