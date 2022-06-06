@@ -31,14 +31,13 @@ async function sendEmail(from, subject, html, email) {
         html: html
     };
 
-    await mail.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            return 1
-        } else {
-            console.log(info)
-            return 0
-        }
-    });
+    const result = await mail.sendMail(mailOptions);
+
+    if (result.messageId !== undefined) {
+        return 1;
+    } else {
+        return result;
+    }
 }
 
 const sendEmailVerifed = async (req, res, next) => {
@@ -82,8 +81,7 @@ const sendEmailVerifed = async (req, res, next) => {
                             <p> Đội ngũ Fitness Mall </p>`;
 
                     var sent = await sendEmail(from, subject, html, email, token, displayName);
-                    console.log(sent);
-                    if (sent != '0') {
+                    if (sent === 1) {
                         var data = {
                             token: token,
                             expired: new Date(+new Date() + 30 * 60 * 1000)
@@ -95,8 +93,7 @@ const sendEmailVerifed = async (req, res, next) => {
                         msg = 'The verification link has been sent to your email address. Please verify within 30 minutes';
                     } else {
                         type = 'Error';
-                        msg = 'Something goes to wrong. Please try again';
-
+                        msg = sent;
                     }
                 }
                 res.send({ type: type, msg: msg });

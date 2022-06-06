@@ -37,7 +37,7 @@ const signIn = async (req, res, next) => {
                     });
 
                     if (verified === false || verified === undefined) {
-                        await axios({
+                        const result = await axios({
                             method: "POST",
                             // url: "http://localhost:8080/api/send_email",
                             url: `${process.env.HOST_URL}api/send_email`,
@@ -45,7 +45,11 @@ const signIn = async (req, res, next) => {
                                 email: email
                             }
                         });
-                        res.send("Vui lòng xác thực tài khoản để tiếp tục. Email xác thực đã được gửi đến tài khoản của bạn");
+                        if (result.data.type === "Success") {
+                            res.send("Vui lòng xác thực tài khoản để tiếp tục. Email xác thực đã được gửi đến tài khoản của bạn");
+                        } else {
+                            res.send(result.data.msg)
+                        }
                     } 
                     else if (password !== req.query.password)
                      {
