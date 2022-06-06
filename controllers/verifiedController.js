@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const User = require('../models/users');
 
-function sendEmail(from, subject, html, email) {
+async function sendEmail(from, subject, html, email) {
     var from = from;
     var subject = subject;
     var html = html;
@@ -31,10 +31,12 @@ function sendEmail(from, subject, html, email) {
         html: html
     };
 
-    mail.sendMail(mailOptions, function (error, info) {
+    await mail.sendMail(mailOptions, function (error, info) {
         if (error) {
+            console.log(error)
             return 1
         } else {
+            console.log(info)
             return 0
         }
     });
@@ -80,7 +82,8 @@ const sendEmailVerifed = async (req, res, next) => {
                             <p> Trân trọng, </p>
                             <p> Đội ngũ Fitness Mall </p>`;
 
-                    var sent = sendEmail(from, subject, html, email, token, displayName);
+                    var sent = await sendEmail(from, subject, html, email, token, displayName);
+                    console.log(sent);
                     if (sent != '0') {
                         var data = {
                             token: token,
