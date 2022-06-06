@@ -71,7 +71,7 @@ const sendEmailVerifed = async (req, res, next) => {
                     });
 
                     verifiedLink = `${process.env.HOST_URL}api/verify_email?token=`;
-                    from = 'Email Verification';
+                    from = 'Email Verification <noreply@gmail.com>';
                     subject = `Xác thực email cho Fitness Mall`;
                     html = `<p> Xin chào ${displayName}, </p>
                             <p> Nhấn vào liên kết này để xác thực email của bạn. </p>
@@ -198,7 +198,7 @@ const sendEmailChangePassword = async (req, res, next) => {
 
                 var from, subject, html, email;
 
-                from = 'Password Reset';
+                from = 'Password Reset <noreply@gmail.com>';
                 subject = `Đặt lại mật khẩu cho Fitness Mall`;
                 email = userInform.email;
                 html = `<p> Xin chào ${userInform.name}, </p>

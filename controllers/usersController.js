@@ -8,7 +8,8 @@ const { google } = require('googleapis');
 const urlParse = require('url-parse');
 const queryParse = require('query-string');
 const axios = require('axios');
-const uuid = require('uuid')
+const uuid = require('uuid');
+const sendEmail = require('./verifiedController').sendEmail;
 
 const signIn = async (req, res, next) => {
     try {
@@ -27,14 +28,24 @@ const signIn = async (req, res, next) => {
                     res.send('Sai thông tin tài khoản');
                 } 
                 else {
-                    var password, role, verified;
+                    var password, role, verified, email;
                     user.forEach(doc => {
                         password = doc.data().password;
                         role = doc.data().role;
                         verified = doc.data().verified;
+                        email = doc.data().email;
                     });
 
-                    if (verified === false || verified === undefined) res.send("Vui lòng xác thực tài khoản để tiếp tục");
+                    if (verified === false || verified === undefined) {
+                        await axios({
+                            method: "POST",
+                            url: `${process.env.HOST_URL}send_email`,
+                            data: {
+                                email: email
+                            }
+                        });
+                        res.send("Vui lòng xác thực tài khoản để tiếp tục. Email xác thực đã được gửi đến tài khoản của bạn");
+                    } 
                     else if (password !== req.query.password)
                      {
                         res.send('Sai thông tin tài khoản');

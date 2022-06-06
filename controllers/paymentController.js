@@ -48,7 +48,7 @@ function createOrderSuccessNotify(props) {
 
     emailTemplate += '</table>';
     // console.log('[INFO] Email template:' + emailTemplate);
-    sendEmail('fitness-maill@gmail.com', 'Xác nhận đặt hàng thành công', emailTemplate, email);
+    sendEmail('Order Confirm <fitness-maill@gmail.com>', 'Xác nhận đặt hàng thành công', emailTemplate, email);
     // console.log('[INFO] Send email notification successfully');
 }
 
