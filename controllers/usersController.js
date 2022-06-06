@@ -13,7 +13,7 @@ const sendEmail = require('./verifiedController').sendEmail;
 
 const signIn = async (req, res, next) => {
     try {
-        if (req.query.username === undefined || req.query.username === '' ) res.send('Không được để trống tài khoản');
+        if (req.query.username === undefined || req.query.username === '') res.send('Không được để trống tài khoản');
         else if (req.query.password === undefined || req.query.password === '') res.send('Không được để trống mật khẩu');
         else {
             const session = await firestore.collection('session_data')
@@ -24,9 +24,9 @@ const signIn = async (req, res, next) => {
                     .where('username', '==', req.query.username)
                     .get();
 
-                if (user.empty){
+                if (user.empty) {
                     res.send('Sai thông tin tài khoản');
-                } 
+                }
                 else {
                     var password, role, verified, email;
                     user.forEach(doc => {
@@ -50,11 +50,10 @@ const signIn = async (req, res, next) => {
                         } else {
                             res.send(result.data.msg)
                         }
-                    } 
-                    else if (password !== req.query.password)
-                     {
+                    }
+                    else if (password !== req.query.password) {
                         res.send('Sai thông tin tài khoản');
-                     }
+                    }
                     else {
                         var sessionID = uuid.v1();
                         await firestore.collection("session_data").add({
@@ -65,7 +64,7 @@ const signIn = async (req, res, next) => {
                             },
                             expired_date: +new Date() + 24 * 60 * 60 * 1000
                         })
-                        res.send({sessionID: sessionID});
+                        res.send({ sessionID: sessionID });
                     }
                 }
             } else res.send("Please sign out before sign in again");
@@ -90,7 +89,7 @@ const getSession = async (req, res, next) => {
                 sessions.forEach(doc => {
                     id = doc.id;
                     session_data = doc.data().session_data,
-                    expired_date = doc.data().expired_date
+                        expired_date = doc.data().expired_date
                 });
 
 
@@ -153,8 +152,8 @@ const signOut = async (req, res, next) => {
 
 const signUp = async (req, res, next) => {
     try {
-        if (req.body.username === undefined|| req.body.username === '') res.send('Missing username value');
-        else if (req.body.password === undefined|| req.body.password === '') res.send('Missing password value');
+        if (req.body.username === undefined || req.body.username === '') res.send('Missing username value');
+        else if (req.body.password === undefined || req.body.password === '') res.send('Missing password value');
         else if (req.body.email === undefined || req.body.email === '') res.send('Missing email value');
         else {
             const user = await firestore.collection('users')
@@ -164,7 +163,21 @@ const signUp = async (req, res, next) => {
                 .where("email", "==", req.body.email)
                 .get();
             if (user.empty && gmail.empty) {
-                await firestore.collection('users').add({ ...req.body, role: 'member', verified: false });
+                const userRef = await firestore.collection('users').add({ ...req.body, role: 'member', verified: false });
+
+                const informRef = await firestore.collection('users').doc(userRef.id).collection('informations').add({
+                    address: "KTX Khu A",
+                    district: "Thành phố Thủ Đức",
+                    phone: "0971083236",
+                    province: "Hồ Chí Minh",
+                    receiver: req.body.username,
+                    ward: "Phường Linh Trung"
+                })
+
+                await firestore.collection('users').doc(userRef.id).collection('informations').doc(informRef.id).update({
+                    id: informRef.id
+                })
+
                 res.send('Sign up successfully! Please verify email to sign in');
             } else if (!user.empty) {
                 res.send('Sign up failed ! Account has existed already');
@@ -384,20 +397,33 @@ const userGoogleReturn = async (req, res, next) => {
             .get();
 
         if (user.empty) {
-            await firestore.collection('users').add({
+            const userRef = await firestore.collection('users').add({
                 "avatar": userInform.picture,
                 "email": userInform.email,
                 "height": 0,
                 "weight": 0,
                 "name": userInform.name,
-                "date":{"day":'',"month":'',"year":''},
-                "nation":'',
-                "sex":'',
-                "phone":'',
+                "date": { "day": '', "month": '', "year": '' },
+                "nation": '',
+                "sex": '',
+                "phone": '',
                 "role": "member",
                 "username": userInform.email,
                 "verified": true
             });
+
+            const informRef = await firestore.collection('users').doc(userRef.id).collection('informations').add({
+                address: "KTX Khu A",
+                district: "Thành phố Thủ Đức",
+                phone: "0971083236",
+                province: "Hồ Chí Minh",
+                receiver: userInform.name,
+                ward: "Phường Linh Trung"
+            })
+
+            await firestore.collection('users').doc(userRef.id).collection('informations').doc(informRef.id).update({
+                id: informRef.id
+            })
         }
         var sessionID = uuid.v1();
         if (user.empty) {
