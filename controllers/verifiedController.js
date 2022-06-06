@@ -33,8 +33,7 @@ async function sendEmail(from, subject, html, email) {
 
     await mail.sendMail(mailOptions, function (error, info) {
         if (error) {
-            console.log(error)
-            return 1
+            res.send(error)
         } else {
             console.log(info)
             return 0
